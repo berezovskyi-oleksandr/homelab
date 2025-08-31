@@ -1,0 +1,132 @@
+services:
+  broker:
+    image: docker.io/library/redis:8
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/redis:/data
+    networks:
+      - internal
+
+  db:
+    image: docker.io/library/postgres:17-bookworm
+    restart: unless-stopped
+    environment:
+      - POSTGRES_DB=${PAPERLESS_DBNAME}
+      - POSTGRES_USER=${PAPERLESS_DBUSER}
+      - POSTGRES_PASSWORD=${PAPERLESS_DBPASS}
+      - TZ=${TZ}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/database:/var/lib/postgresql/data
+    networks:
+      - internal
+
+  webserver:
+    image: ghcr.io/paperless-ngx/paperless-ngx:latest
+    restart: unless-stopped
+    environment:
+      - PAPERLESS_REDIS=redis://broker:6379
+      - PAPERLESS_DBHOST=db
+      - PAPERLESS_DBUSER=${PAPERLESS_DBUSER}
+      - PAPERLESS_DBPASS=${PAPERLESS_DBPASS}
+      - PAPERLESS_DBNAME=${PAPERLESS_DBNAME}
+      - PAPERLESS_TIKA_ENABLED=1
+      - PAPERLESS_TIKA_GOTENBERG_ENDPOINT=http://gotenberg:3000
+      - PAPERLESS_TIKA_ENDPOINT=http://tika:9998
+      - PAPERLESS_OCR_LANGUAGE=${PAPERLESS_OCR_LANGUAGE}
+      - PAPERLESS_OCR_LANGUAGES=${PAPERLESS_OCR_LANGUAGES}
+      - PAPERLESS_SECRET_KEY=${PAPERLESS_SECRET_KEY}
+      - PAPERLESS_TIME_ZONE=${TZ}
+      - PAPERLESS_URL=https://${TRAEFIK_DOMAIN}
+      - PAPERLESS_CONSUMER_BARCODE_SCANNER=ZXING
+      - USERMAP_UID=${USERMAP_UID}
+      - USERMAP_GID=${USERMAP_GID}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/data:/usr/src/paperless/data
+      - ${SERVICE_DATA_ROOT_PATH}/media:/usr/src/paperless/media
+      - ${SERVICE_DATA_ROOT_PATH}/export:/usr/src/paperless/export
+      - ${CONSUME_PATH}:/usr/src/paperless/consume
+    depends_on:
+      - db
+      - broker
+      - gotenberg
+      - tika
+    networks:
+      - internal
+      - traefik
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.paperless.rule=Host(`${TRAEFIK_DOMAIN}`)"
+      - "traefik.http.routers.paperless.entrypoints=websecure"
+      - "traefik.http.routers.paperless.tls.certresolver=myresolver"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.services.paperless.loadbalancer.server.port=8000"
+
+  gotenberg:
+    image: docker.io/gotenberg/gotenberg:8.20
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    command:
+      - "gotenberg"
+      - "--chromium-disable-javascript=true"
+      - "--chromium-allow-list=file:///tmp/.*"
+    networks:
+      - internal
+
+  tika:
+    image: docker.io/apache/tika:latest
+    restart: unless-stopped
+    environment:
+      - TZ=${TZ}
+    networks:
+      - internal
+
+  backup-files:
+    image: creativeprojects/resticprofile:${RP_VERSION:-latest}
+    restart: always
+    environment:
+      - TZ=${TZ}
+      - AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
+      - AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/restic/resticprofile.yaml:/etc/resticprofile/profiles.yaml:ro
+      - ${SERVICE_DATA_ROOT_PATH}/restic/restic.key:/etc/resticprofile/key:ro
+      - ${SERVICE_DATA_ROOT_PATH}/media:/media:ro
+      - ${SERVICE_DATA_ROOT_PATH}/db_dumps:/db_dumps:ro
+    command:
+      - '-c'
+      - 'resticprofile schedule --all && crond -f'
+    entrypoint: "/bin/sh"
+    hostname: paperless-resticprofile
+    networks:
+      - internal
+
+  backup-database:
+    image: prodrigestivill/postgres-backup-local:17
+    restart: always
+    environment:
+      - POSTGRES_HOST=db
+      - POSTGRES_CLUSTER=TRUE
+      - POSTGRES_USER=${PAPERLESS_DBUSER}
+      - POSTGRES_PASSWORD=${PAPERLESS_DBPASS}
+      - POSTGRES_DB=${PAPERLESS_DBNAME}
+      - BACKUP_KEEP_MINS=120
+      - SCHEDULE=50 * * * *
+      - POSTGRES_EXTRA_OPTS=--clean --if-exists
+      - BACKUP_DIR=/db_dumps
+      - BACKUP_ON_START=TRUE
+      - TZ=${TZ}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/db_dumps:/db_dumps
+    depends_on:
+      - db
+    networks:
+      - internal
+
+networks:
+  internal:
+    name: paperless
+  traefik:
+    external: true

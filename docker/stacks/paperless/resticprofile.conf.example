@@ -1,0 +1,44 @@
+global:
+  scheduler: crond
+
+default:
+  password-file: key
+  repository: s3:s3.eu-central-003.backblazeb2.com/BUCKET-NAME
+  initialize: true
+  force-inactive-lock: true
+  backup:
+    source: /media
+    exclude-caches: true
+    one-file-system: true
+    schedule: "*:00,15,30,45"
+    schedule-permission: system
+    check-before: false
+    group-by: "paths"
+  forget:
+    schedule: "daily"
+    keep-hourly: 24
+    keep-daily: 7
+    keep-weekly: 4
+    heep-monthly: 12
+    prune: true
+
+database:
+  password-file: key
+  repository: s3:s3.eu-central-003.backblazeb2.com/BUCKET-NAME
+  initialize: true
+  force-inactive-lock: true
+  backup:
+    source: /db_dumps
+    exclude-caches: true
+    one-file-system: true
+    schedule: "hourly"
+    schedule-permission: system
+    check-before: false
+    group-by: "paths"
+  forget:
+    schedule: "daily"
+    keep-hourly: 24
+    keep-daily: 7
+    keep-weekly: 4
+    heep-monthly: 12
+    prune: true
