@@ -1,0 +1,146 @@
+services:
+  # Torrent client
+  qbittorrent:
+    image: linuxserver/qbittorrent
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+      - WEBUI_PORT=8114
+    volumes:
+      - ${MEDIA_PATH}:/media
+      - ${SERVICE_DATA_ROOT_PATH}/qbittorrent/config:/config
+    ports:
+      - 8114:8114
+      - 23312:23312
+    networks:
+      - traefik
+      - sonarr
+      - radarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.qbittorrent-service.rule=Host(`${QBITTORRENT_SERVICE_DOMAIN}`) && PathPrefix(`/api/v2`)"
+      - "traefik.http.routers.qbittorrent-service.service=qbittorrent-service"
+      - "traefik.http.services.qbittorrent-service.loadbalancer.server.port=8114"
+      - "traefik.http.routers.qbittorrent-service.entrypoints=websecure"
+      - "traefik.http.routers.qbittorrent-service.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.qbittorrent-service-auth.basicauth.users=${QBITTORRENT_BASIC_AUTH}"
+      - "traefik.http.routers.qbittorrent-service.middlewares=qbittorrent-service-auth@docker"
+      - "traefik.docker.network=traefik"
+
+  # Tracker indexer
+  prowlarr:
+    image: linuxserver/prowlarr:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/prowlarr/config:/config
+    ports:
+      - 9696:9696
+    networks:
+      - sonarr
+      - radarr
+
+  # Series manager
+  sonarr:
+    image: linuxserver/sonarr:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/sonarr/config:/config
+      - ${MEDIA_PATH}:/media
+    ports:
+      - 8989:8989
+    depends_on:
+      - sonarr-db
+    networks:
+      - traefik
+      - sonarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.sonarr-service.rule=Host(`${SONARR_SERVICE_DOMAIN}`) && PathPrefix(`/api/v3`)"
+      - "traefik.http.routers.sonarr-service.entrypoints=websecure"
+      - "traefik.http.routers.sonarr-service.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.sonarr-service-auth.basicauth.users=${SONARR_BASIC_AUTH}"
+      - "traefik.http.routers.sonarr-service.middlewares=sonarr-service-auth@docker"
+      - "traefik.docker.network=traefik"
+
+  sonarr-db:
+    image: postgres:14
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+      - POSTGRES_DB=${SONARR_DB_NAME}
+      - POSTGRES_USER=${SONARR_DB_USER}
+      - POSTGRES_PASSWORD=${SONARR_DB_PASSWORD}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/sonarr/database:/var/lib/postgresql/data
+    networks:
+      - sonarr
+
+  # Movies manager
+  radarr:
+    image: linuxserver/radarr:latest
+    restart: unless-stopped
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/radarr/config:/config
+      - ${MEDIA_PATH}:/media
+    ports:
+      - 7878:7878
+    depends_on:
+      - radarr-db
+    networks:
+      - traefik
+      - radarr
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.radarr-service.rule=Host(`${RADARR_SERVICE_DOMAIN}`) && PathPrefix(`/api/v3`)"
+      - "traefik.http.routers.radarr-service.entrypoints=websecure"
+      - "traefik.http.routers.radarr-service.tls.certresolver=myresolver"
+      - "traefik.http.middlewares.radarr-service-auth.basicauth.users=${RADARR_BASIC_AUTH}"
+      - "traefik.http.routers.radarr-service.middlewares=radarr-service-auth@docker"
+      - "traefik.docker.network=traefik"
+
+  radarr-db:
+    image: postgres:14
+    restart: unless-stopped
+    user: ${PUID}:${PGID}
+    environment:
+      - PUID=${PUID}
+      - PGID=${PGID}
+      - TZ=${TZ}
+      - UMASK=002
+      - POSTGRES_DB=${RADARR_DB_NAME}
+      - POSTGRES_USER=${RADARR_DB_USER}
+      - POSTGRES_PASSWORD=${RADARR_DB_PASSWORD}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/radarr/database:/var/lib/postgresql/data
+    networks:
+      - radarr
+
+networks:
+  radarr:
+    name: radarr
+  sonarr:
+    name: sonarr
+  traefik:
+    name: traefik
+    external: true
