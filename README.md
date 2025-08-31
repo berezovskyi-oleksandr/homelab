@@ -21,6 +21,7 @@ docker/stacks/<service>/
 | **Immich** | Self-hosted photo and video management | Personal media library with ML features |
 | **Paperless-ngx** | Document management system with OCR | Digital document archive and search |
 | **Media Stack** | Sonarr, Radarr, Prowlarr, qBittorrent | Automated media acquisition and management |
+| **Pi-hole** | DNS sinkhole with ad blocking and dnscrypt-proxy | Network-wide ad blocking and encrypted DNS |
 | **Arch Mirror** | Local Arch Linux package repository mirror | Local package cache for faster updates |
 
 ## Deployment

@@ -1,0 +1,37 @@
+services:
+  server:
+    image: pihole/pihole:2025.08.0
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+      FTLCONF_webserver_api_password: '${PIHOLE_WEBPASSWORD}'
+      FTLCONF_dns_listeningMode: all
+      FTLCONF_dns_upstreams: dnscrypt-proxy#5353
+    labels:
+      - com.centurylinklabs.watchtower.enable=false
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/config:/etc/pihole
+    ports:
+      - "${PIHOLE_DNS_PORT}:53/tcp"
+      - "${PIHOLE_DNS_PORT}:53/udp"
+      - "${PIHOLE_HTTP_PORT}:80/tcp"
+    cap_add:
+      - SYS_NICE
+    depends_on:
+      - dnscrypt-proxy
+    networks:
+      - pihole
+
+  dnscrypt-proxy:
+    image: klutchell/dnscrypt-proxy:latest
+    restart: unless-stopped
+    environment:
+      TZ: ${TZ}
+    volumes:
+      - ${SERVICE_DATA_ROOT_PATH}/dnscrypt/dnscrypt-proxy.toml:/config/dnscrypt-proxy.toml
+    networks:
+      - pihole
+
+networks:
+  pihole:
+    name: pihole
