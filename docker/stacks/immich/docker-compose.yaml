@@ -73,8 +73,8 @@ services:
     volumes:
       - ${SERVICE_DATA_ROOT_PATH}/restic/resticprofile.yaml:/etc/resticprofile/profiles.yaml:ro
       - ${SERVICE_DATA_ROOT_PATH}/restic/restic.key:/etc/resticprofile/key:ro
-      - ${UPLOAD_LOCATION}:${UPLOAD_LOCATION}:ro
       - ${SERVICE_DATA_ROOT_PATH}/db_dumps:/db_dumps:ro
+      - ${UPLOAD_LOCATION}:/photos:ro
     environment:
       TZ: ${TZ}
       AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
