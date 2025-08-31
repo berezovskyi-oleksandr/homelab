@@ -1,0 +1,44 @@
+services:
+  rsync-mirror:
+    build:
+      context: ./rsync
+      dockerfile: Dockerfile
+    environment:
+      - MIRROR_URL=${MIRROR_URL}
+      - SYNC_SCHEDULE=${SYNC_SCHEDULE}
+      - TZ=${TZ}
+      - RSYNC_EXTRA_OPTIONS=${RSYNC_EXTRA_OPTIONS}
+    volumes:
+      - ${ARCHLINUX_VOLUME_PATH:-./archlinux}:/archlinux
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "ps", "aux", "|", "grep", "[s]upercronic"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  nginx-server:
+    build:
+      context: ./nginx
+      dockerfile: Dockerfile
+    ports:
+      - "${HTTP_PORT:-8080}:80"
+    volumes:
+      - ${ARCHLINUX_VOLUME_PATH:-./archlinux}:/usr/share/nginx/html/archlinux:ro
+    environment:
+      - NGINX_WORKERS=${NGINX_WORKERS}
+    depends_on:
+      rsync-mirror:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 15s
+
+networks:
+  default:
+    name: archlinux-mirror-net

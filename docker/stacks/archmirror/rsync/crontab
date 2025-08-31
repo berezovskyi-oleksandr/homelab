@@ -1,0 +1,2 @@
+0 */6 * * * /usr/bin/flock -n /var/lock/archlinux-sync.lock /usr/local/bin/sync.sh
+* * * * * [ ! -f /var/lock/initial-sync-done ] && /usr/bin/flock -n /var/lock/archlinux-sync.lock /usr/local/bin/sync.sh && touch /var/lock/initial-sync-done
