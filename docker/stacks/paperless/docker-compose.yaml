@@ -47,7 +47,7 @@ services:
       - PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS=${PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS}
     volumes:
       - ${SERVICE_DATA_ROOT_PATH}/data:/usr/src/paperless/data
-      - ${SERVICE_DATA_ROOT_PATH}/media:/usr/src/paperless/media
+      - ${MEDIA_PATH:-${SERVICE_DATA_ROOT_PATH}/media}:/usr/src/paperless/media
       - ${SERVICE_DATA_ROOT_PATH}/export:/usr/src/paperless/export
       - ${CONSUME_PATH}:/usr/src/paperless/consume
     depends_on:
@@ -96,7 +96,7 @@ services:
     volumes:
       - ${SERVICE_DATA_ROOT_PATH}/restic/resticprofile.yaml:/etc/resticprofile/profiles.yaml:ro
       - ${SERVICE_DATA_ROOT_PATH}/restic/restic.key:/etc/resticprofile/key:ro
-      - ${SERVICE_DATA_ROOT_PATH}/media:/media:ro
+      - ${MEDIA_PATH:-${SERVICE_DATA_ROOT_PATH}/media}:/media:ro
       - ${SERVICE_DATA_ROOT_PATH}/db_dumps:/db_dumps:ro
     command:
       - '-c'
