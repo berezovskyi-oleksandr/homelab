@@ -90,3 +90,23 @@ data "talos_cluster_health" "talos-health" {
   control_plane_nodes  = [each.value.ip_address]
   endpoints            = [each.value.hostname]
 }
+
+data "talos_client_configuration" "talos-client-config" {
+  depends_on = [data.talos_cluster_health.talos-health]
+
+  for_each = var.clusters
+
+  cluster_name         = each.key
+  client_configuration = talos_machine_secrets.secrets[each.key].client_configuration
+  nodes                = [each.value.ip_address]
+
+}
+
+resource "talos_cluster_kubeconfig" "talos-kubeconfig" {
+  depends_on = [data.talos_cluster_health.talos-health]
+
+  for_each = var.clusters
+
+  client_configuration = talos_machine_secrets.secrets[each.key].client_configuration
+  node                 = each.value.ip_address
+}
