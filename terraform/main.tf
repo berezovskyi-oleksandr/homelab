@@ -60,6 +60,13 @@ data "talos_machine_configuration" "machine-config" {
   cluster_endpoint = "https://${each.value.hostname}:6443"
   machine_secrets  = talos_machine_secrets.secrets[each.key].machine_secrets
 
+  config_patches = [
+    yamlencode({
+      cluster = {
+        allowSchedulingOnControlPlanes = true
+      }
+    })
+  ]
 }
 
 resource "talos_machine_configuration_apply" "talos-config" {
