@@ -8,6 +8,7 @@ spec:
   chart:
     spec:
       chart: nfs-subdir-external-provisioner
+      version: 4.0.18
       reconcileStrategy: ChartVersion
       sourceRef:
         kind: HelmRepository
