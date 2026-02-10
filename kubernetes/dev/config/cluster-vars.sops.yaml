@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: cluster-vars
+    namespace: flux-system
+stringData:
+    LUBELOGGER_HOST: ENC[AES256_GCM,data:OvDY/XIE/YW8lSDJmhHYI63r4eLQOojsMjjkUIge,iv:v1JafZB4cmVFjX+yA7FjjoXfx7jPpZQaq1HyXvNXvsY=,tag:+h5Gg/q3bKP3l7xCNLaBqA==,type:str]
+sops:
+    age:
+        - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSBnQnMvTXBXZUg3eUhLTUtv
+            NlMxTmw2R0VVeXFBREdiYllweVE0elNqL0hRCjczS3NqVzlaTDhRSFdLMm5WREQx
+            ZG54Q2tRUk50bXZkd3FLQ3VXRUdaNEEKLS0tIDdpdSswc3pVQ1hFb1VhUWR3dFN4
+            LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
+            cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-02-10T12:00:08Z"
+    mac: ENC[AES256_GCM,data:MeENbnkjALwbIkd833zmBx/nCfCTqO7+5i5L98lI6UJrgOhrT5gsrP33jiWgyv6qPHqbgLb1XzJ/Z+DbTl6O/sW7NDrgRr3AXPg0L6ej1fCCcdpIQDbgkWzcUSgxSfv8WyFINh3f2HP0TFaZNRaDvkR0IDkwR3KHapkM8fl5uxQ=,iv:/RNS5e0IfOLobot6f+IHuYULbXSoLBYlg6EK9j4Bqic=,tag:re0Ip1/1eX96J5HRN3r46Q==,type:str]
+    encrypted_regex: ^(data|stringData|email)$
+    version: 3.11.0
