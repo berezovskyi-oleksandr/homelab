@@ -5,6 +5,7 @@ metadata:
     namespace: flux-system
 stringData:
     LUBELOGGER_HOST: ENC[AES256_GCM,data:OvDY/XIE/YW8lSDJmhHYI63r4eLQOojsMjjkUIge,iv:v1JafZB4cmVFjX+yA7FjjoXfx7jPpZQaq1HyXvNXvsY=,tag:+h5Gg/q3bKP3l7xCNLaBqA==,type:str]
+    AUTHELIA_DOMAIN: ENC[AES256_GCM,data:2OL1YD3202Haab4AyQACHtDaYw==,iv:2NtGj9Y3s0CW4xtqeCUr6Kwh7QNXhNsq/y6tGfTcBi4=,tag:c5WzQpJiwuU0vWQxUtEVpg==,type:str]
 sops:
     age:
         - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
@@ -16,7 +17,7 @@ sops:
             LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
             cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-02-10T12:00:08Z"
-    mac: ENC[AES256_GCM,data:MeENbnkjALwbIkd833zmBx/nCfCTqO7+5i5L98lI6UJrgOhrT5gsrP33jiWgyv6qPHqbgLb1XzJ/Z+DbTl6O/sW7NDrgRr3AXPg0L6ej1fCCcdpIQDbgkWzcUSgxSfv8WyFINh3f2HP0TFaZNRaDvkR0IDkwR3KHapkM8fl5uxQ=,iv:/RNS5e0IfOLobot6f+IHuYULbXSoLBYlg6EK9j4Bqic=,tag:re0Ip1/1eX96J5HRN3r46Q==,type:str]
+    lastmodified: "2026-02-18T19:49:59Z"
+    mac: ENC[AES256_GCM,data:IulhbCsswVhvtAL49xuhiZeemLqT+pm0An+md4rlVNV4BunMZ/VYX/FIKn74ku3vLFWnTsAZTv6uB6xHdg9KVX0x78igiulp+TXqVA0JpdMsHYUXsoeb88ODDbG49KbUYaL1Id+1+m0G/P7wkGJ8ppQLA8aofKTKRhGsTpcqfv0=,iv:YfZJ2iKBJmjDuBYAIg9B0U3xF67Z/Fa2YqEcZrR/Y7A=,tag:4hxcbZgU/UDcgMEMG0R3dg==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.11.0

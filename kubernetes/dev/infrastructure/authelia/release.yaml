@@ -1,0 +1,74 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: authelia
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: authelia
+        namespace: flux-system
+      version: 0.10.49
+  interval: 1m0s
+  targetNamespace: authelia
+  values:
+    pod:
+      kind: Deployment
+      extraVolumes:
+        - name: authelia-config
+          configMap:
+            name: authelia-config
+        - name: authelia-data
+          persistentVolumeClaim:
+            claimName: authelia-data
+        - name: authelia-custom-secrets
+          secret:
+            secretName: authelia-secrets
+            items:
+              - key: OIDC_ISSUER_PRIVATE_KEY
+                path: OIDC_ISSUER_PRIVATE_KEY
+              - key: SMTP_PASSWORD
+                path: SMTP_PASSWORD
+      extraVolumeMounts:
+        - name: authelia-config
+          mountPath: /configuration.yaml
+          subPath: configuration.yml
+        - name: authelia-config
+          mountPath: /users_database.yml
+          subPath: users_database.yml
+        - name: authelia-data
+          mountPath: /data
+        - name: authelia-custom-secrets
+          mountPath: /secrets
+          readOnly: true
+    ingress:
+      enabled: true
+      certManager: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      tls:
+        enabled: true
+        secret: authelia-tls
+      traefikCRD:
+        enabled: true
+        disableIngressRoute: true
+        middlewares:
+          auth:
+            authResponseHeaders:
+              - Remote-User
+              - Remote-Groups
+              - Remote-Email
+              - Remote-Name
+    configMap:
+      disabled: true
+      session:
+        cookies:
+          - subdomain: auth
+            domain: ${AUTHELIA_DOMAIN}
+    secret:
+      existingSecret: authelia-secrets
