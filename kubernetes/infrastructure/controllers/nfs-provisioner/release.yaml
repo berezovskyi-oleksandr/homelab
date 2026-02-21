@@ -17,8 +17,8 @@ spec:
   interval: 1m0s
   values:
      nfs:
-        server: synology.lviv
-        path: /volume3/k8s-dev
+        server: synology.storage.lviv
+        path: /volume3/k8s-storage
      storageClass:
         name: nfs-synology-ssd
         defaultClass: false
