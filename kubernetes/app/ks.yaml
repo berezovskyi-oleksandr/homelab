@@ -12,7 +12,7 @@ spec:
     kind: GitRepository
     name: flux-system
   dependsOn:
-    - name: infrastructure
+    - name: infrastructure-configs
     - name: config
   decryption:
     provider: sops
