@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: prowlarr
+  namespace: media
+  labels:
+    app: prowlarr
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: prowlarr
+  template:
+    metadata:
+      labels:
+        app: prowlarr
+    spec:
+      initContainers:
+        - name: wait-for-config
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until ls /config > /dev/null 2>&1; do echo "Waiting for config volume..."; sleep 5; done
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      containers:
+        - name: prowlarr
+          image: lscr.io/linuxserver/prowlarr:2.3.0.5236-ls137
+          envFrom:
+            - configMapRef:
+                name: media-common-env
+          ports:
+            - containerPort: 9696
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: 9696
+              path: /ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              port: 9696
+              path: /ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /config
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: prowlarr-config

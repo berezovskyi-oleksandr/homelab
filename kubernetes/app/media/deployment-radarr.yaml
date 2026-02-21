@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app: radarr
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: radarr
+  template:
+    metadata:
+      labels:
+        app: radarr
+    spec:
+      initContainers:
+        - name: wait-for-nfs
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until ls /media > /dev/null 2>&1; do echo "Waiting for NFS..."; sleep 5; done
+          volumeMounts:
+            - name: media
+              mountPath: /media
+        - name: wait-for-db
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until nc -z radarr-db 5432; do echo "Waiting for database..."; sleep 2; done
+        - name: init-log-db
+          image: postgres:14.21
+          env:
+            - name: PGHOST
+              value: radarr-db
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: RADARR_DB_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: RADARR_DB_PASSWORD
+          command:
+            - sh
+            - -c
+            - psql -d postgres -c 'CREATE DATABASE "radarr-log"' || true
+      containers:
+        - name: radarr
+          image: lscr.io/linuxserver/radarr:6.0.4.10291-ls293
+          envFrom:
+            - configMapRef:
+                name: media-common-env
+          ports:
+            - containerPort: 7878
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: 7878
+              path: /ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              port: 7878
+              path: /ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: radarr-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nfs

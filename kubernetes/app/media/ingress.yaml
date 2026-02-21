@@ -1,0 +1,159 @@
+# Middleware for API clients (NZB360 etc.) that use HTTP basic auth.
+# Uses Authelia's legacy verify endpoint which responds with 401 +
+# WWW-Authenticate instead of redirecting to the login page.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: authelia-basic
+  namespace: media
+spec:
+  forwardAuth:
+    address: http://authelia-authelia.authelia.svc.cluster.local/api/verify?auth=basic
+    trustForwardHeader: true
+    authResponseHeaders:
+      - Remote-User
+      - Remote-Groups
+      - Remote-Email
+      - Remote-Name
+---
+# qBittorrent - browser access via Authelia SSO
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: qbittorrent
+  namespace: media
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        - ${QBITTORRENT_HOST}
+      secretName: qbittorrent-tls
+  rules:
+    - host: ${QBITTORRENT_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: qbittorrent
+                port:
+                  number: 8114
+---
+# qBittorrent API - basic auth for NZB360.
+# Uses IngressRoute with HeaderRegexp so only requests carrying an
+# Authorization: Basic header are matched; browser XHR/fetch calls
+# (which rely on the Authelia session cookie) fall through to the
+# standard SSO Ingress above.
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: qbittorrent-api
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${QBITTORRENT_HOST}`) && PathPrefix(`/api/v2`) && HeaderRegexp(`Authorization`, `^Basic .+$`)
+      kind: Rule
+      middlewares:
+        - name: authelia-basic
+      services:
+        - name: qbittorrent
+          port: 8114
+  tls:
+    secretName: qbittorrent-tls
+---
+# Sonarr - browser access via Authelia SSO
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: sonarr
+  namespace: media
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        - ${SONARR_HOST}
+      secretName: sonarr-tls
+  rules:
+    - host: ${SONARR_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: sonarr
+                port:
+                  number: 8989
+---
+# Sonarr API - basic auth for NZB360
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: sonarr-api
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${SONARR_HOST}`) && PathPrefix(`/api/v3`) && HeaderRegexp(`Authorization`, `^Basic .+$`)
+      kind: Rule
+      middlewares:
+        - name: authelia-basic
+      services:
+        - name: sonarr
+          port: 8989
+  tls:
+    secretName: sonarr-tls
+---
+# Radarr - browser access via Authelia SSO
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: radarr
+  namespace: media
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        - ${RADARR_HOST}
+      secretName: radarr-tls
+  rules:
+    - host: ${RADARR_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: radarr
+                port:
+                  number: 7878
+---
+# Radarr API - basic auth for NZB360
+apiVersion: traefik.io/v1alpha1
+kind: IngressRoute
+metadata:
+  name: radarr-api
+  namespace: media
+spec:
+  entryPoints:
+    - websecure
+  routes:
+    - match: Host(`${RADARR_HOST}`) && PathPrefix(`/api/v3`) && HeaderRegexp(`Authorization`, `^Basic .+$`)
+      kind: Rule
+      middlewares:
+        - name: authelia-basic
+      services:
+        - name: radarr
+          port: 7878
+  tls:
+    secretName: radarr-tls

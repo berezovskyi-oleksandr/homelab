@@ -1,0 +1,124 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent
+  namespace: media
+  labels:
+    app: qbittorrent
+spec:
+  type: ClusterIP
+  ports:
+    - name: 8114-8114
+      port: 8114
+      targetPort: 8114
+      protocol: TCP
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: qbittorrent-bt
+  namespace: media
+  labels:
+    app: qbittorrent
+spec:
+  type: NodePort
+  ports:
+    - name: bt-tcp
+      port: 23312
+      targetPort: 23312
+      nodePort: 30312
+      protocol: TCP
+    - name: bt-udp
+      port: 23312
+      targetPort: 23312
+      nodePort: 30312
+      protocol: UDP
+  selector:
+    app: qbittorrent
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prowlarr
+  namespace: media
+  labels:
+    app: prowlarr
+spec:
+  type: ClusterIP
+  ports:
+    - name: 9696-9696
+      port: 9696
+      targetPort: 9696
+      protocol: TCP
+  selector:
+    app: prowlarr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr
+  namespace: media
+  labels:
+    app: sonarr
+spec:
+  type: ClusterIP
+  ports:
+    - name: 8989-8989
+      port: 8989
+      targetPort: 8989
+      protocol: TCP
+  selector:
+    app: sonarr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr
+  namespace: media
+  labels:
+    app: radarr
+spec:
+  type: ClusterIP
+  ports:
+    - name: 7878-7878
+      port: 7878
+      targetPort: 7878
+      protocol: TCP
+  selector:
+    app: radarr
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: sonarr-db
+  namespace: media
+  labels:
+    app: sonarr-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: 5432-5432
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: sonarr-db
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: radarr-db
+  namespace: media
+  labels:
+    app: radarr-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: 5432-5432
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: radarr-db

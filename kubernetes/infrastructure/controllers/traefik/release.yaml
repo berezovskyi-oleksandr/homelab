@@ -16,6 +16,9 @@ spec:
         namespace: flux-system
   interval: 1m0s
   values:
+    providers:
+      kubernetesCRD:
+        allowCrossNamespace: true
     service:
       type: ClusterIP
     ports:

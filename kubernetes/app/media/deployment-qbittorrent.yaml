@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qbittorrent
+  namespace: media
+  labels:
+    app: qbittorrent
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: qbittorrent
+  template:
+    metadata:
+      labels:
+        app: qbittorrent
+    spec:
+      initContainers:
+        - name: wait-for-nfs
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until ls /media > /dev/null 2>&1; do echo "Waiting for NFS..."; sleep 5; done
+          volumeMounts:
+            - name: media
+              mountPath: /media
+      containers:
+        - name: qbittorrent
+          image: lscr.io/linuxserver/qbittorrent:5.1.4-r2-ls441
+          envFrom:
+            - configMapRef:
+                name: media-common-env
+          env:
+            - name: WEBUI_PORT
+              value: "8114"
+          ports:
+            - containerPort: 8114
+              name: webui
+              protocol: TCP
+            - containerPort: 23312
+              name: bt-tcp
+              protocol: TCP
+            - containerPort: 23312
+              name: bt-udp
+              protocol: UDP
+          livenessProbe:
+            httpGet:
+              port: 8114
+              path: /
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            timeoutSeconds: 5
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              port: 8114
+              path: /
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 5
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: qbittorrent-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nfs

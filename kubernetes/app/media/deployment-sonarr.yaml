@@ -1,0 +1,89 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sonarr
+  namespace: media
+  labels:
+    app: sonarr
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: sonarr
+  template:
+    metadata:
+      labels:
+        app: sonarr
+    spec:
+      initContainers:
+        - name: wait-for-nfs
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until ls /media > /dev/null 2>&1; do echo "Waiting for NFS..."; sleep 5; done
+          volumeMounts:
+            - name: media
+              mountPath: /media
+        - name: wait-for-db
+          image: busybox:1.37
+          command:
+            - sh
+            - -c
+            - until nc -z sonarr-db 5432; do echo "Waiting for database..."; sleep 2; done
+        - name: init-log-db
+          image: postgres:14.21
+          env:
+            - name: PGHOST
+              value: sonarr-db
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: SONARR_DB_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: SONARR_DB_PASSWORD
+          command:
+            - sh
+            - -c
+            - psql -d postgres -c 'CREATE DATABASE "sonarr-log"' || true
+      containers:
+        - name: sonarr
+          image: lscr.io/linuxserver/sonarr:4.0.16.2944-ls303
+          envFrom:
+            - configMapRef:
+                name: media-common-env
+          ports:
+            - containerPort: 8989
+              name: http
+              protocol: TCP
+          livenessProbe:
+            httpGet:
+              port: 8989
+              path: /ping
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              port: 8989
+              path: /ping
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: media
+              mountPath: /media
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: sonarr-config
+        - name: media
+          persistentVolumeClaim:
+            claimName: media-nfs

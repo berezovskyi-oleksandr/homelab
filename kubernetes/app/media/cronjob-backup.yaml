@@ -1,0 +1,135 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: sonarr-db-backup
+  namespace: media
+  labels:
+    app: sonarr-db-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: sonarr-db-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: postgres:14.21
+              env:
+                - name: PGHOST
+                  value: sonarr-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: SONARR_DB_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: SONARR_DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: SONARR_DB_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: rclone-upload
+              image: rclone/rclone:1.69
+              command:
+                - sh
+                - -c
+                - rclone copy /backup/dump.sql r2crypt:sonarr/ --config /config/rclone/rclone.conf
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                - name: rclone-config
+                  mountPath: /config/rclone
+                  readOnly: true
+          volumes:
+            - name: backup
+              emptyDir: {}
+            - name: rclone-config
+              secret:
+                secretName: rclone-config
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: radarr-db-backup
+  namespace: media
+  labels:
+    app: radarr-db-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: radarr-db-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: postgres:14.21
+              env:
+                - name: PGHOST
+                  value: radarr-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: RADARR_DB_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: RADARR_DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: RADARR_DB_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: rclone-upload
+              image: rclone/rclone:1.69
+              command:
+                - sh
+                - -c
+                - rclone copy /backup/dump.sql r2crypt:radarr/ --config /config/rclone/rclone.conf
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                - name: rclone-config
+                  mountPath: /config/rclone
+                  readOnly: true
+          volumes:
+            - name: backup
+              emptyDir: {}
+            - name: rclone-config
+              secret:
+                secretName: rclone-config
