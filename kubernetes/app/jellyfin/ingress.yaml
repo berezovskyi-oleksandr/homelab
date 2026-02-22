@@ -22,3 +22,24 @@ spec:
                 name: jellyfin
                 port:
                   number: 8096
+---
+# Internal HTTP-only ingress for LAN access (no TLS overhead for heavy video streams)
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: jellyfin-internal
+  namespace: jellyfin
+  annotations:
+    traefik.ingress.kubernetes.io/router.entrypoints: web
+spec:
+  rules:
+    - host: ${JELLYFIN_INTERNAL_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: jellyfin
+                port:
+                  number: 8096

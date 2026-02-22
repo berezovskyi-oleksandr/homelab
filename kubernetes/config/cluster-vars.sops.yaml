@@ -13,6 +13,7 @@ stringData:
     IMMICH_HOST: ENC[AES256_GCM,data:KnzX89wzQvb5Pa/MqX4YiHZ0JS5geA==,iv:05jEIwQEjJnvZ1Ot33Lkfs1TB3L/mwX5dqaTfsugcx4=,tag:LFzOLZSqHQ58bL3oVvGM9g==,type:str]
     IMMICH_UPLOAD_NFS_PATH: ENC[AES256_GCM,data:l8F1AkmhGkNxo29X5UER,iv:Z/u0yLNv5ClQu44lPPzGIB2bEsADFCD/mCd+Kw8kuhc=,tag:a8QGaUEYF3iJbZKcAiRKUg==,type:str]
     JELLYFIN_HOST: ENC[AES256_GCM,data:88I8uzcJa/VwsWOJDe69bUsdGbXzTIGI,iv:TWIALVMMDV9VV7iz0OMsVJ8Cvh13VI54KmACR2utlJI=,tag:yDx1vGk/WfFXaQrnLbhLVA==,type:str]
+    JELLYFIN_INTERNAL_HOST: ENC[AES256_GCM,data:1mG+5+lhwypYm4wcZ3D28SbxzPZs,iv:w7zpUKYnFXJYioyTSGdg4D8Gpc4ei6j6lrDji/+Obsw=,tag:YW/n0n0s1iuDgKu17L+IoA==,type:str]
 sops:
     age:
         - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
@@ -24,7 +25,7 @@ sops:
             LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
             cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-02-22T19:33:02Z"
-    mac: ENC[AES256_GCM,data:z+++1wWcsW2/UwEofY1OAnDWqDED4jkb5DMHaIJHFn623SaA7o6ed3fbgOWABgWI2O+OcQExxcaighSgx/6e2qHwNgpoNg/1FnsNtSBfufNyVz78Lg8wU9ipQ1tT9Ms24vEMOWbsM2Nekb8s2Co6XCdP+18SFpcjEdh1Du++wgc=,iv:dSczLKU2slxRrguwNraEDmohWr9Ya8iWYBDziiBmAWI=,tag:pKv/WbiUUtI60sX1Qoy0kA==,type:str]
+    lastmodified: "2026-02-22T20:46:14Z"
+    mac: ENC[AES256_GCM,data:Avht8eFKRZtfDCRZdyAOLF5yuNXMgWrhRgXpmLCjOmtzQz3O3jcCdiXi/UkLx5MAdjouiFJhs/c+QXixU6DnNpTnSDMWtU5fcMrRUn0PJDiddEq8fkZMcW/dFNM79xsOfeS/PAguEpZ6rE+sgn0VzUC/DS60aYRKvJDiZ8ppBuY=,iv:fRCXsP1Mm6Nmn7OFOBq4ozQ7hyg5nTJ9Fyv9CEfqNCk=,tag:sJm21JvbdGlVuyw51j/Qvg==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.11.0
