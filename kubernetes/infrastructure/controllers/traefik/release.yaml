@@ -22,6 +22,9 @@ spec:
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
+    ingressRoute:
+      dashboard:
+        enabled: true
     service:
       type: ClusterIP
     ports:
