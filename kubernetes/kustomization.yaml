@@ -5,3 +5,4 @@ resources:
 - config/ks.yaml
 - infrastructure/ks.yaml
 - app/ks.yaml
+- app/external/ks.yaml

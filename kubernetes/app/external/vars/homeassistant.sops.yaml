@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: Secret
+metadata:
+    name: homeassistant-vars
+    namespace: flux-system
+stringData:
+    HOMEASSISTANT_HOST: ENC[AES256_GCM,data:xHMOIu+pt7T/fbnfyD5B/InyCO7ZB1S2203agJ8uxjKIkA==,iv:z9Oh/JQo6cVUbKUcrHUFheXw5KU0U8byLH3OEwv0TyQ=,tag:0ThkPR7vJAxYsm1x0gs/bg==,type:str]
+    HOMEASSISTANT_INTERNAL_HOST: ENC[AES256_GCM,data:qq0NQ7hiEEpP6qyuBjxEwo5NPAifWQ==,iv:UD3rstcgk5nypLuyCbWEjCXb0yArWRWXUkGXuyOWrYk=,tag:QPBWyRtb611kVrsPwXtmwQ==,type:str]
+sops:
+    age:
+        - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSA5M0NPOEF2dTNrdlU2NldK
+            T09oWkErRFFYeENKK21NSjhOdmpUa0d3clMwCk9BRElxc2JEbFFyb0RKZ3oyaXhJ
+            ckErd3pDNFlHV2srUFlaNEwvRUYvaVEKLS0tIHNMeG1WOG9VOFY1Vk1PR3hnQ1Zk
+            U3Q2RGZZeVhVemo5L2ZkMHpsSU4xNzgK6SDl+uBDB4vQLHKVdJ4NndPo4VRSKWyX
+            f4gertz0xd70GN+X13x10KHikmAHhk7WoYgXzGsbhaLIsFJUPN71JA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-02-22T21:15:14Z"
+    mac: ENC[AES256_GCM,data:oQ5J6G5UIByo1Y0RE6wMJOosvgq1mXQiks3WZVv03HOpMZ7Tp8YWhTMinTSu+arJDnk8aZyUXkElPGYilc46BH/2pMXX/GHoeuFODUb/IjyjJyLLyoFEYGEAoI79gJxbBrChFG2iXoExTagbrAq4RooMnFb6XEStYjFNp/MOmTA=,iv:JmkHL/ALdz+fscZ3ZXoiKi/dm5Mkk2EEXAd0Ldek3DM=,tag:QD61z/DCmXCnQyukk65OJA==,type:str]
+    encrypted_regex: ^(data|stringData|email)$
+    version: 3.11.0

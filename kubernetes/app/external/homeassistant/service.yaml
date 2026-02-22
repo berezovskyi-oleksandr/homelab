@@ -1,0 +1,11 @@
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homeassistant
+  namespace: homeassistant
+spec:
+  type: ExternalName
+  externalName: ${HOMEASSISTANT_INTERNAL_HOST}
+  ports:
+    - port: 8123
