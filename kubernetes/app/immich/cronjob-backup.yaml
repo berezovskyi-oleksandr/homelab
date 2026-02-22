@@ -1,0 +1,132 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: immich-db-backup
+  namespace: immich
+  labels:
+    app: immich-db-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: immich-db-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: ghcr.io/immich-app/postgres:14-vectorchord0.3.0-pgvectors0.2.0
+              env:
+                - name: PGHOST
+                  value: immich-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-credentials
+                      key: DB_USERNAME
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-credentials
+                      key: DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-credentials
+                      key: DB_DATABASE_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+          containers:
+            - name: rclone-upload
+              image: rclone/rclone:1.69
+              command:
+                - sh
+                - -c
+                - rclone copy /backup/dump.sql b2crypt:immich-db/ --config /config/rclone/rclone.conf
+              volumeMounts:
+                - name: backup
+                  mountPath: /backup
+                - name: rclone-config
+                  mountPath: /config/rclone
+                  readOnly: true
+          volumes:
+            - name: backup
+              emptyDir: {}
+            - name: rclone-config
+              secret:
+                secretName: immich-rclone-config
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: immich-library-backup
+  namespace: immich
+  labels:
+    app: immich-library-backup
+spec:
+  schedule: "0 4 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: immich-library-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile-backup
+              image: creativeprojects/resticprofile:latest
+              command:
+                - sh
+                - -c
+                - resticprofile -c /etc/resticprofile/profiles.yaml backup && resticprofile -c /etc/resticprofile/profiles.yaml forget
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-backup-credentials
+                      key: AWS_ACCESS_KEY_ID
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-backup-credentials
+                      key: AWS_SECRET_ACCESS_KEY
+              volumeMounts:
+                - name: library
+                  mountPath: /photos
+                  readOnly: true
+                - name: resticprofile-config
+                  mountPath: /etc/resticprofile
+                  readOnly: true
+                - name: restic-key
+                  mountPath: /etc/restic
+                  readOnly: true
+          volumes:
+            - name: library
+              persistentVolumeClaim:
+                claimName: immich-library
+            - name: resticprofile-config
+              secret:
+                secretName: immich-backup-credentials
+                items:
+                  - key: profiles.yaml
+                    path: profiles.yaml
+            - name: restic-key
+              secret:
+                secretName: immich-backup-credentials
+                items:
+                  - key: RESTIC_KEY
+                    path: key
