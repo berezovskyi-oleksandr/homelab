@@ -22,6 +22,9 @@ spec:
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
+        allowExternalNameServices: true
+      kubernetesIngress:
+        allowExternalNameServices: true
     ingressRoute:
       dashboard:
         enabled: true
