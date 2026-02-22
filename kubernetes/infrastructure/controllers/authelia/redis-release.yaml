@@ -1,0 +1,26 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: authelia-redis
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: redis
+      version: 25.x
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: bitnami
+        namespace: flux-system
+  interval: 1m0s
+  targetNamespace: authelia
+  values:
+    architecture: standalone
+    auth:
+      enabled: false
+    master:
+      persistence:
+        storageClass: nfs-synology-ssd
+        size: 256Mi
