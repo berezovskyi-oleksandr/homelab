@@ -1,0 +1,43 @@
+---
+# Jellyfin config (includes metadata)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-config
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-synology-ssd
+  resources:
+    requests:
+      storage: 30Gi
+---
+# Jellyfin cache (transcoding temp files etc.)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-cache
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: nfs-synology-ssd
+  resources:
+    requests:
+      storage: 20Gi
+---
+# Shared media library (NFS)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-media
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: ""
+  volumeName: jellyfin-media-nfs
+  resources:
+    requests:
+      storage: 1Ti
