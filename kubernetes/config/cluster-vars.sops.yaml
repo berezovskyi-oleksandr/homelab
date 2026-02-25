@@ -14,6 +14,9 @@ stringData:
     IMMICH_UPLOAD_NFS_PATH: ENC[AES256_GCM,data:l8F1AkmhGkNxo29X5UER,iv:Z/u0yLNv5ClQu44lPPzGIB2bEsADFCD/mCd+Kw8kuhc=,tag:a8QGaUEYF3iJbZKcAiRKUg==,type:str]
     JELLYFIN_HOST: ENC[AES256_GCM,data:88I8uzcJa/VwsWOJDe69bUsdGbXzTIGI,iv:TWIALVMMDV9VV7iz0OMsVJ8Cvh13VI54KmACR2utlJI=,tag:yDx1vGk/WfFXaQrnLbhLVA==,type:str]
     JELLYFIN_INTERNAL_HOST: ENC[AES256_GCM,data:1mG+5+lhwypYm4wcZ3D28SbxzPZs,iv:w7zpUKYnFXJYioyTSGdg4D8Gpc4ei6j6lrDji/+Obsw=,tag:YW/n0n0s1iuDgKu17L+IoA==,type:str]
+    ARCHMIRROR_HOST: ENC[AES256_GCM,data:gOuABquXQBbb1Fcc3cJ05HJ9nbPtRYJ5q/t+6IhhVQ==,iv:r4N4oWQbpSPYIuclWF5mjnDeNDaCigM5a6eKYPehwCc=,tag:hfXg9Nkf2AHn8GiurrIVhw==,type:str]
+    ARCHMIRROR_NFS_PATH: ENC[AES256_GCM,data:RHNbu/Jobo8Q5DzKjF4RojvrYQ==,iv:khpEqK0KzdZeZm8qKZ3MJQDk2P799FBCNPOJGx4Tdhk=,tag:CKHeuRZttLRwN6noSaehDQ==,type:str]
+    ARCHMIRROR_MIRROR_URL: ENC[AES256_GCM,data:cIORJWshvr4fL/OqyvplXllcrMdh3UMrt11cBqwgS12O3wGBgyULJNDcP7c2,iv:8Efs43us8xlUvkafWf15K5wqBoJnYLmC50j094taoFs=,tag:6hV2emMunQ1jOteRCANRsA==,type:str]
 sops:
     age:
         - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
@@ -25,7 +28,7 @@ sops:
             LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
             cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-02-22T20:46:14Z"
-    mac: ENC[AES256_GCM,data:Avht8eFKRZtfDCRZdyAOLF5yuNXMgWrhRgXpmLCjOmtzQz3O3jcCdiXi/UkLx5MAdjouiFJhs/c+QXixU6DnNpTnSDMWtU5fcMrRUn0PJDiddEq8fkZMcW/dFNM79xsOfeS/PAguEpZ6rE+sgn0VzUC/DS60aYRKvJDiZ8ppBuY=,iv:fRCXsP1Mm6Nmn7OFOBq4ozQ7hyg5nTJ9Fyv9CEfqNCk=,tag:sJm21JvbdGlVuyw51j/Qvg==,type:str]
+    lastmodified: "2026-02-25T21:55:59Z"
+    mac: ENC[AES256_GCM,data:2H9ege3TITjTtpIVMbYfx85qdQs4VrjrFHZ+mbAtffVgVWtt20j543QegRoiEnMGXpYeT3mWFMzBCHmcTbRp6B7fxwZ3cBTAe7cCHIrqlQRwcTe40qahwIYZmNqmIb9ZHrhJC/Rx2TVnYlMoks2olgs5NGMyUaVMyrwIRCvTtME=,iv:Gq/+jsPB8CixryfVFgL5wjx66wz7NsshuMIuCj64qOA=,tag:rGH4x+q6tgVv6RuKyJaiXw==,type:str]
     encrypted_regex: ^(data|stringData|email)$
-    version: 3.11.0
+    version: 3.12.1

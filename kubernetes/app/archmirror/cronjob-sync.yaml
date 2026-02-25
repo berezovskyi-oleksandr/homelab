@@ -1,0 +1,54 @@
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: archmirror-sync
+  namespace: archmirror
+  labels:
+    app: archmirror-sync
+spec:
+  schedule: "0 */6 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      backoffLimit: 1
+      activeDeadlineSeconds: 14400
+      template:
+        metadata:
+          labels:
+            app: archmirror-sync
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: rsync
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - apk add --no-cache rsync && sh /scripts/sync.sh
+              env:
+                - name: MIRROR_URL
+                  value: ${ARCHMIRROR_MIRROR_URL}
+              volumeMounts:
+                - name: data
+                  mountPath: /archlinux
+                - name: sync-script
+                  mountPath: /scripts
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 128Mi
+                limits:
+                  cpu: "1"
+                  memory: 512Mi
+          volumes:
+            - name: data
+              persistentVolumeClaim:
+                claimName: archmirror-data
+            - name: sync-script
+              configMap:
+                name: archmirror-sync-script
+                defaultMode: 0755
