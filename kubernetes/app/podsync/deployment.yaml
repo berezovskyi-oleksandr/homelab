@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: podsync
+  namespace: podsync
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: podsync
+  template:
+    metadata:
+      labels:
+        app: podsync
+    spec:
+      containers:
+        - name: podsync
+          image: ghcr.io/mxpv/podsync
+          ports:
+            - containerPort: 8080
+          volumeMounts:
+            - name: data
+              mountPath: /app/data
+            - name: database
+              mountPath: /app/db
+            - name: config
+              mountPath: /app/config.toml
+              subPath: config.toml
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: podsync-data
+        - name: database
+          persistentVolumeClaim:
+            claimName: podsync-database
+        - name: config
+          configMap:
+            name: podsync-config

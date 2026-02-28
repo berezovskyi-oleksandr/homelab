@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: podsync-config
+    namespace: podsync
+data:
+    config.toml: ENC[AES256_GCM,data:ud/lwdZMMjk7VOwOkw/FHB5rEXgt3yJiOtpVjm/jriWWmWjCruNE/hei/sgF/ea2G49XacHQHnDOJFX95mq9ZuBgdj4KBx9nW91pNODF5PKVDE24jShFhepN7MCPvfHgRaRZbe23YQkjIceGcswfYpwAr4Mr21jeiMgK0cJVUyeR/mO9pk3kRm4kFqIcDnl+gpmLnlj1gKm/GkIymt+tQqaw0LVuSZj1eGGk2ZReBPO7Thkj4OlGc/vf1vAoZcLuEqBF1flvibOHn9PqbO+QDxcJvAUx6MfbFJ8fW/p45jFrfxsUnVaJPD7kp6R2IMvbvH6r1jObr49/IEY6MrCApoujbP5mi3nPo13yRcT4fNr8kWmIBY2nBDahRHpbwg8R13XWIvhEYZW/8I7srNYOj3sfR13jLulyjiO67M8cA6a7CMER0sH4mt6JtBCXK6/pRTOD5PzElw5ga3h0HRkcu5+VneGiNTiPipaxNe0HoD/OGkjcao7ztEFC9eYmpRK25QPNHBdRtAvrkX2GBGCNLGn9MTEXHCeLJtuI8MebHRgT+cR9puFd6ezB0kUuDLt39crm5DtuhN7yPbii/s/1MJ6yhSxsrQMZm4OYNO2/5VcjDEVfSxgsJsV1K82vzk1YjpAgPsqpSg/3AodlM2cEjuKy/BjX7fvog9rauEEkmrCGbI6FN7dJFwyJ9rT2TQ65kvr+O00gdAeQHi0rfFAaKZ/eFkzgEnBaJHEJHm9B+khZlopPWtvESK91qVMvScNXD4yu6uhdYihR28/MUfLdPRYIrEVwlk1LC+uc+h9sGBMPk6hs73mjy6ll7GzhOrZ7/PGrW68ZWzAUTfsVj8b3ota0K/uzqTkktAyqQ3FrZe6f70sSdjXrcbd2r2CQwbMj9zz/vqj6gGJQQpsAOAPJPUGw2WV1741rwq1jz2/1aXJwFFBmm89u/N6ALKxAc82ZQ9punlotSpW9kFKEmvJkLu1nXPp5UNFOmlhEE6lTeQ2cOwfFJn8AEgV/LIvmIN1odli7ZZgiMBDB+b+i7ygxRxTTgm+Yaxzy4s0MEKoWBdfKgsGCKVlazcC+vzjrxs2HHhMaVacWGwROFnlSLs3KpLa1jaTWAcs5t444wrAM5yUeqZL76NLP85XPU2M3A9nFYeG0P/jEJj5ng5oKZKjZo7sesG+SfywNDb5ZnDrfqF2IFodTHlQZl2RIh+EkINLgC70c+DlHdj5bWBjlVgwxR+3iv1QMf4froxyA6hg/0Rjzh/gGS8pOLUnNrh6EFfNdWJXfhly5Iklb0q3ynh8bEnUTJxmCE1fOCLOHFjW0a1Pzwd1Fp6P64C1I89lWYM/000JbxsOzVrBA3t9VWeoBEsc2RBxzEgV8k0GCgHaSVLwG6dxSO+dKAPmKvgdpaz2a70KC,iv:SWzY/BbV0vStgEuMg6zKRwHzA1XgJd9Wbb3OZrWx7wA=,tag:54E7l/Vb9R2RBzGZLueRVA==,type:str]
+sops:
+    age:
+        - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
+          enc: |
+            -----BEGIN AGE ENCRYPTED FILE-----
+            YWdlLWVuY3J5cHRpb24ub3JnL3YxCi0+IFgyNTUxOSB2QTBUbnNBcGFhYjNiNGRG
+            T3JqdFY0dTIzWDA3OGNVUkoreVhONXVDeFVVCkR0amlYMThyejlPaWlPSkdGL0xy
+            YUN3VEhGajJoQjNiRVV5ckw0cE1JaTAKLS0tIDFSWnpWWVFxQ0VVY2U4bUFtTWVk
+            bkg3K01kWFl4ZWZuK21KRTIxUEhDUEEKPGWzrJlyZGNOsvrVhWKw56y8iAwrqDQK
+            OWJYIq0gt9NWfNBao8UpiuKJXU4SX01hW4fa1OEfGSDJAjNNxGpFVA==
+            -----END AGE ENCRYPTED FILE-----
+    lastmodified: "2026-02-28T20:36:14Z"
+    mac: ENC[AES256_GCM,data:nLST3PCcdNQ0zOsqUMHZVP9Zp2WmqVFzGcJkZRPgfI0Acb7xP+KZHeMEGscEgwvBKDa72pH4zSoQ60bFJcoVv9dH/MkCyz1BHIDfkO4DNo6nvHgZ83Gqwl5MU/LPYBQY267504QEDCr6VZFzXY8SRVIvD1e0y8qxpbgS4MPW2Tg=,iv:NiLrvTKQZJdHHFXqvfZ0qQ8Lx1E6GLiAdtAneYWc4m0=,tag:3zheqtMglkwg5w66mljW3Q==,type:str]
+    encrypted_regex: ^(data|stringData|email)$
+    version: 3.12.1
