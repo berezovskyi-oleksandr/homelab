@@ -4,7 +4,7 @@ metadata:
   name: podsync
   namespace: podsync
 spec:
-  replicas: 0
+  replicas: 1
   selector:
     matchLabels:
       app: podsync
