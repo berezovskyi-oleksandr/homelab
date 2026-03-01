@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pihole
+  namespace: pihole
+  labels:
+    app: pihole
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: pihole
+  template:
+    metadata:
+      labels:
+        app: pihole
+    spec:
+      containers:
+        - name: pihole
+          image: pihole/pihole:2025.08.0
+          env:
+            - name: TZ
+              value: Europe/Kyiv
+            - name: FTLCONF_webserver_api_password
+              valueFrom:
+                secretKeyRef:
+                  name: pihole-credentials
+                  key: WEBPASSWORD
+            - name: FTLCONF_dns_listeningMode
+              value: all
+            - name: FTLCONF_dns_upstreams
+              value: "127.0.0.1#5353"
+            - name: FTLCONF_misc_etc_dnsmasq_d
+              value: "true"
+          ports:
+            - containerPort: 53
+              protocol: TCP
+              name: dns-tcp
+            - containerPort: 53
+              protocol: UDP
+              name: dns-udp
+            - containerPort: 80
+              protocol: TCP
+              name: http
+          volumeMounts:
+            - name: pihole-config
+              mountPath: /etc/pihole
+            - name: pihole-dnsmasq
+              mountPath: /etc/dnsmasq.d
+
+        - name: dnscrypt-proxy
+          image: klutchell/dnscrypt-proxy:latest
+          env:
+            - name: TZ
+              value: Europe/Kyiv
+          volumeMounts:
+            - name: dnscrypt-config
+              mountPath: /config/dnscrypt-proxy.toml
+              subPath: dnscrypt-proxy.toml
+
+      volumes:
+        - name: pihole-config
+          persistentVolumeClaim:
+            claimName: pihole-config
+        - name: pihole-dnsmasq
+          persistentVolumeClaim:
+            claimName: pihole-dnsmasq
+        - name: dnscrypt-config
+          configMap:
+            name: dnscrypt-config

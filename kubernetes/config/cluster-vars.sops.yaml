@@ -19,6 +19,7 @@ stringData:
     ARCHMIRROR_MIRROR_URL: ENC[AES256_GCM,data:cIORJWshvr4fL/OqyvplXllcrMdh3UMrt11cBqwgS12O3wGBgyULJNDcP7c2,iv:8Efs43us8xlUvkafWf15K5wqBoJnYLmC50j094taoFs=,tag:6hV2emMunQ1jOteRCANRsA==,type:str]
     PODSYNC_HOST: ENC[AES256_GCM,data:MK+WWo8R2uS45U8suBDusOp922YqngM=,iv:7QfuVU6ICEmpNwtgpnXa2phwP0+0pcmv8w3CJSLwvrA=,tag:z6qizhm8fzzDZq/726kKsQ==,type:str]
     PODSYNC_NFS_PATH: ENC[AES256_GCM,data:O1ZHSOsmwe57nY0T42pHOHcc/aB9,iv:FS4Yb9F4mzrvKni0hg6HD22R83v3YoGlDAeEPBc4RzE=,tag:f+Wi8BOPIVod/8upGZmw5A==,type:str]
+    PIHOLE_HOST: ENC[AES256_GCM,data:LysbDrRB3nmYkuJrvnNTJ4mlN52w3Q==,iv:pp1wubLuF69IRFJtkLlPC1EeW/whQNLwXeOiNvFlsPI=,tag:rSgcD4HmzJsynuPwU4GB/Q==,type:str]
 sops:
     age:
         - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
@@ -30,7 +31,7 @@ sops:
             LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
             cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-02-28T20:47:12Z"
-    mac: ENC[AES256_GCM,data:c8pE3AixjxpDSGwnTYrhHRDDXFAAhHs4zaveies6/4feWUY1o+26Z0aWQssWQaQCR9V5mo831B400jMg4tudbJflRHE6VV0ah5eFh5+N7M5vnbxrWHCwGW3Y5bAUXAuaMFDgOO5fCi+iryCC8WZe6FxqZTMawWAcjMq93X55jbY=,iv:RWU3PTXd1XOdmGbr87LSqUud1Aak8VzXzjLLorh2UHc=,tag:rNWOmU/W0NfIupMV9mMfig==,type:str]
+    lastmodified: "2026-03-01T10:40:47Z"
+    mac: ENC[AES256_GCM,data:ilvEM/b6Dvl6FpScV4yZAFnhv6M3M+UQ+sFIUT0wN95N1ndN0uk0vcgSlyaxKMZIj0UjepTqgu2i+/88WKuOlkDWoyRjdXsTcQvaOyVM5UQWwilzCZjpRCuYE+4UVQM6DVvBTplkhaBZcDSrTpBnHFyTdEb9iysTt2Ki6UP7Dx8=,iv:4UJ/fjG2KUQVBZIFwgCReZlgdItCTkh47HLJvPP7HoI=,tag:WGRK1ulWu2FgxawKpq3BfA==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.12.1

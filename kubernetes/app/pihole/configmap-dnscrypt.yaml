@@ -1,0 +1,39 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: dnscrypt-config
+  namespace: pihole
+data:
+  dnscrypt-proxy.toml: |
+    listen_addresses = ['127.0.0.1:5353']
+    max_clients = 250
+    ipv4_servers = true
+    ipv6_servers = false
+    block_ipv6 = true
+    dnscrypt_servers = true
+    doh_servers = true
+    require_dnssec = false
+    force_tcp = false
+    timeout = 5000
+    keepalive = 30
+    lb_strategy = 'p2'
+    cache = true
+    cache_size = 4096
+    cache_min_ttl = 2400
+    cache_max_ttl = 86400
+    http3 = true
+    http3_probe = true
+
+    fallback_resolvers = ['8.8.8.8:53', '1.1.1.1:53']
+    ignore_system_dns = true
+
+    server_names = []
+
+    [static]
+      # Cloudflare DoH
+      [static.'cloudflare']
+      stamp = 'sdns://AgcAAAAAAAAABzEuMC4wLjEAEmRucy5jbG91ZGZsYXJlLmNvbQovZG5zLXF1ZXJ5'
+
+      # Google DoH
+      [static.'google']
+      stamp = 'sdns://AgUAAAAAAAAABzguOC44LjggsKKKE4EwvtIbNjGjagI2607EdKSVHowYZtyvD9iPrkkHOC44LjguOAovZG5zLXF1ZXJ5'
