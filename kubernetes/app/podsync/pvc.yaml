@@ -20,7 +20,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: podsync-database
   resources:
     requests:
       storage: 1Gi

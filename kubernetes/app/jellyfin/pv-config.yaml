@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: podsync-data-nfs
+  name: jellyfin-config
 spec:
   capacity:
-    storage: 100Gi
+    storage: 30Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
@@ -14,15 +14,15 @@ spec:
     - nointr
   nfs:
     server: synology.storage.lviv
-    path: ${PODSYNC_NFS_PATH}
+    path: /volume3/k8s-storage/jellyfin-config
 ---
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: podsync-database
+  name: jellyfin-cache
 spec:
   capacity:
-    storage: 1Gi
+    storage: 20Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
@@ -32,4 +32,4 @@ spec:
     - nointr
   nfs:
     server: synology.storage.lviv
-    path: /volume3/k8s-storage/podsync-database
+    path: /volume3/k8s-storage/jellyfin-cache

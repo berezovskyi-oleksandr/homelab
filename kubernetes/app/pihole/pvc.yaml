@@ -6,7 +6,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: pihole-config
   resources:
     requests:
       storage: 2Gi
@@ -19,7 +20,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: pihole-dnsmasq
   resources:
     requests:
       storage: 1Gi

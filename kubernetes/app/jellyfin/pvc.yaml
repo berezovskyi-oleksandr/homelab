@@ -8,7 +8,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: jellyfin-config
   resources:
     requests:
       storage: 30Gi
@@ -22,7 +23,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: jellyfin-cache
   resources:
     requests:
       storage: 20Gi

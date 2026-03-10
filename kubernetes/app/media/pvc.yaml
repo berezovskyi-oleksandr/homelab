@@ -20,7 +20,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: qbittorrent-config
   resources:
     requests:
       storage: 1Gi
@@ -33,7 +34,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: prowlarr-config
   resources:
     requests:
       storage: 1Gi
@@ -46,7 +48,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: sonarr-config
   resources:
     requests:
       storage: 5Gi
@@ -59,7 +62,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: radarr-config
   resources:
     requests:
       storage: 5Gi
@@ -72,7 +76,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: sonarr-db
   resources:
     requests:
       storage: 5Gi
@@ -85,7 +90,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: radarr-db
   resources:
     requests:
       storage: 5Gi

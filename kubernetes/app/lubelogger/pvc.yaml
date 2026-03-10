@@ -7,7 +7,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: lubelogger-data
   resources:
     requests:
       storage: 1Gi
@@ -20,7 +21,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: lubelogger-keys
   resources:
     requests:
       storage: 1Gi

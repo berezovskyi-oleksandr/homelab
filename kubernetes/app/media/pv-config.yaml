@@ -1,0 +1,107 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: qbittorrent-config
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/qbittorrent-config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: prowlarr-config
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/prowlarr-config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-config
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/radarr-config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: radarr-db
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/radarr-db
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarr-config
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/sonarr-config
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: sonarr-db
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - nointr
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/sonarr-db

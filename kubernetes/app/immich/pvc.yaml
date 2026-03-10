@@ -20,7 +20,8 @@ metadata:
 spec:
   accessModes:
     - ReadWriteOnce
-  storageClassName: nfs-synology-ssd
+  storageClassName: ""
+  volumeName: immich-db
   resources:
     requests:
       storage: 10Gi
