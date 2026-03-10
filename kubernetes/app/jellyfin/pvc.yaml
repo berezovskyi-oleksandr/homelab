@@ -27,6 +27,20 @@ spec:
     requests:
       storage: 20Gi
 ---
+# Jellyfin SQLite databases (local node storage — avoids NFS locking issues)
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jellyfin-data
+  namespace: jellyfin
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: local-path
+  resources:
+    requests:
+      storage: 5Gi
+---
 # Shared media library (NFS)
 apiVersion: v1
 kind: PersistentVolumeClaim

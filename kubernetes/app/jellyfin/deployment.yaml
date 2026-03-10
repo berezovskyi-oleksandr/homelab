@@ -17,6 +17,27 @@ spec:
       labels:
         app: jellyfin
     spec:
+      initContainers:
+        - name: migrate-data
+          image: busybox:1.36
+          command:
+            - sh
+            - -c
+            - |
+              cd /config/data
+              for db in *.db; do
+                [ -f "$db" ] && [ ! -L "$db" ] || continue
+                echo "Migrating $db to local storage..."
+                cp "$db" "/db-local/$db"
+                rm "$db"
+                ln -sf "/db-local/$db" "$db"
+              done
+              echo "Done"
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: data
+              mountPath: /db-local
       containers:
         - name: jellyfin
           image: jellyfin/jellyfin:10.11.6
@@ -56,6 +77,8 @@ spec:
           volumeMounts:
             - name: config
               mountPath: /config
+            - name: data
+              mountPath: /db-local
             - name: cache
               mountPath: /cache
             - name: media
@@ -65,6 +88,9 @@ spec:
         - name: config
           persistentVolumeClaim:
             claimName: jellyfin-config
+        - name: data
+          persistentVolumeClaim:
+            claimName: jellyfin-data
         - name: cache
           persistentVolumeClaim:
             claimName: jellyfin-cache
