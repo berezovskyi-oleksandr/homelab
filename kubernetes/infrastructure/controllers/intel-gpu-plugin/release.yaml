@@ -19,4 +19,4 @@ spec:
   dependsOn:
     - name: intel-device-plugins-operator
   values:
-    nodeFeatureRule: false
+    nodeFeatureRule: true
