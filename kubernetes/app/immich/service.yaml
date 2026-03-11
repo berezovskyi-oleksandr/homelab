@@ -6,11 +6,9 @@ metadata:
   labels:
     app: immich-db
 spec:
-  type: ClusterIP
   ports:
-    - name: 5432-5432
+    - name: postgres
       port: 5432
       targetPort: 5432
-      protocol: TCP
   selector:
     app: immich-db
