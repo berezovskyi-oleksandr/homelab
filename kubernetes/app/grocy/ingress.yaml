@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: grocy
+  namespace: grocy
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+spec:
+  tls:
+    - hosts:
+        - ${GROCY_HOST}
+      secretName: grocy-tls
+  rules:
+    - host: ${GROCY_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: grocy
+                port:
+                  number: 80

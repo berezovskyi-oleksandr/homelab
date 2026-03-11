@@ -1,0 +1,76 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: grocy-config-backup
+  namespace: grocy
+  labels:
+    app: grocy-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: grocy-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: sqlite-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  apk add --no-cache sqlite
+                  sqlite3 /db-local/grocy.db ".backup /backup/grocy.db"
+              volumeMounts:
+                - name: db
+                  mountPath: /db-local
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n grocy-config backup
+                  resticprofile -c /secrets/profiles.yaml -n grocy-config copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: grocy-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: grocy-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          volumes:
+            - name: secrets
+              secret:
+                secretName: grocy-backup-config
+            - name: config
+              persistentVolumeClaim:
+                claimName: grocy-config
+            - name: db
+              persistentVolumeClaim:
+                claimName: grocy-db
+            - name: backup-tmp
+              emptyDir: {}
