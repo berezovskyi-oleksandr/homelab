@@ -20,6 +20,11 @@ stringData:
     PODSYNC_HOST: ENC[AES256_GCM,data:MK+WWo8R2uS45U8suBDusOp922YqngM=,iv:7QfuVU6ICEmpNwtgpnXa2phwP0+0pcmv8w3CJSLwvrA=,tag:z6qizhm8fzzDZq/726kKsQ==,type:str]
     PODSYNC_NFS_PATH: ENC[AES256_GCM,data:O1ZHSOsmwe57nY0T42pHOHcc/aB9,iv:FS4Yb9F4mzrvKni0hg6HD22R83v3YoGlDAeEPBc4RzE=,tag:f+Wi8BOPIVod/8upGZmw5A==,type:str]
     PIHOLE_HOST: ENC[AES256_GCM,data:LysbDrRB3nmYkuJrvnNTJ4mlN52w3Q==,iv:pp1wubLuF69IRFJtkLlPC1EeW/whQNLwXeOiNvFlsPI=,tag:rSgcD4HmzJsynuPwU4GB/Q==,type:str]
+    PAPERLESS_HOST: ENC[AES256_GCM,data:M9h/Z0jesAhEZ30Lm9SrXesfVlTrL3EkxA==,iv:ZOXF8kRnD/2tu/uFRJ1IAwQ1MYR29aepJleBxfrBm8k=,tag:3NQ742Y2zeJbyz/8Od2GLA==,type:str]
+    PAPERLESS_MEDIA_NFS_PATH: ENC[AES256_GCM,data:anrMuEdnLC5+EmvgZeXXsJSg,iv:aJDdeUAvMy33HKGd+y4YWFVPRqgxi7hAuTVZSEnHKMI=,tag:zCKmxT0BCyzUubaQOkbXHg==,type:str]
+    PAPERLESS_CONSUME_NFS_PATH: ENC[AES256_GCM,data:q4s+bz9Zvs9dXRoCO3MyaHe/7h5fw0Y=,iv:CkInWz0cI1FMWMxJD+Tfy+IJL3HXQX0fY3iEZ4qed3A=,tag:PwCnIqMoRiVWPFQ1uNGODA==,type:str]
+    PAPERLESS_DATA_NFS_PATH: ENC[AES256_GCM,data:N3JgoXmQkZULA0WcABuPcuKkoOgoyPcnB5EpqS3iykGRtU0=,iv:BUnaXtjMWibztesA6T5nm76RDZFfp+gmzSPa8oinyKc=,tag:yb7/3aHut+y0JJXjqinVag==,type:str]
+    BACKUP_LOCAL_HOST: ENC[AES256_GCM,data:kqF7CnCVd4lEnQL2xWOibTR4jG25obGjVLA=,iv:EPlmBtLeNtEu5e9AGuMt7hjn53dgpWSVScOfPDqQMwM=,tag:fHdiv+FPG/6MlJiS4dcPTg==,type:str]
 sops:
     age:
         - recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
@@ -31,7 +36,7 @@ sops:
             LzhUN3Z4cExIL1IyS3ZCNWh5aWpLbDgKQ7c3MmLykA00NaLoctKVDfJvPqTqh3Ia
             cDZJUc6jYJXOJYM6YYyZOYcCL2z8V2RpIfA9sPg8PB2eiipZxjk+Cg==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-03-01T10:40:47Z"
-    mac: ENC[AES256_GCM,data:ilvEM/b6Dvl6FpScV4yZAFnhv6M3M+UQ+sFIUT0wN95N1ndN0uk0vcgSlyaxKMZIj0UjepTqgu2i+/88WKuOlkDWoyRjdXsTcQvaOyVM5UQWwilzCZjpRCuYE+4UVQM6DVvBTplkhaBZcDSrTpBnHFyTdEb9iysTt2Ki6UP7Dx8=,iv:4UJ/fjG2KUQVBZIFwgCReZlgdItCTkh47HLJvPP7HoI=,tag:WGRK1ulWu2FgxawKpq3BfA==,type:str]
+    lastmodified: "2026-03-11T12:09:29Z"
+    mac: ENC[AES256_GCM,data:slhySxwlC4iLR/Qcr6jloPWbJiWiIyy1aMsYYqatu3pM1bOyBDkrILU8SmsFky8lRG1ImYPMxb6nSmWqkA1i8QWQE9mkGSRN6dUw6E33d2l9ooA6vz5EMmjmO5vg/tzyrskCkeZqdGP+XecvwZMKkA4bLYr7ChKCRlmLOn9O4g4=,iv:b92aWORGUORbCNCg3ZcHr+BRntaOYg3q3aBPV84q680=,tag:OidID+Ymq38NpGH006CaJQ==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.12.1

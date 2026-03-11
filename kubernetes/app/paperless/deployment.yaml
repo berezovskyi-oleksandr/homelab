@@ -1,0 +1,128 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless
+  namespace: paperless
+  labels:
+    app: paperless
+spec:
+  replicas: 0
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: paperless
+  template:
+    metadata:
+      labels:
+        app: paperless
+    spec:
+      enableServiceLinks: false
+      securityContext:
+        # paperless-ngx starts as root to remap USERMAP_UID/GID — runAsNonRoot is intentionally omitted
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: paperless
+          image: ghcr.io/paperless-ngx/paperless-ngx:2.20
+          ports:
+            - containerPort: 8000
+              name: http
+          env:
+            - name: PAPERLESS_REDIS
+              value: redis://paperless-redis:6379
+            - name: PAPERLESS_DBHOST
+              value: paperless-db
+            - name: PAPERLESS_DBUSER
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-credentials
+                  key: DB_USERNAME
+            - name: PAPERLESS_DBPASS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-credentials
+                  key: DB_PASSWORD
+            - name: PAPERLESS_DBNAME
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-credentials
+                  key: DB_DATABASE_NAME
+            - name: PAPERLESS_SECRET_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-credentials
+                  key: PAPERLESS_SECRET_KEY
+            - name: PAPERLESS_SOCIALACCOUNT_PROVIDERS
+              valueFrom:
+                secretKeyRef:
+                  name: paperless-credentials
+                  key: PAPERLESS_SOCIALACCOUNT_PROVIDERS
+            - name: PAPERLESS_TIKA_ENABLED
+              value: "1"
+            - name: PAPERLESS_TIKA_GOTENBERG_ENDPOINT
+              value: http://paperless-gotenberg:3000
+            - name: PAPERLESS_TIKA_ENDPOINT
+              value: http://paperless-tika:9998
+            - name: PAPERLESS_OCR_LANGUAGE
+              value: ukr+eng
+            - name: PAPERLESS_OCR_LANGUAGES
+              value: ukr rus
+            - name: PAPERLESS_TIME_ZONE
+              value: Europe/Kyiv
+            - name: PAPERLESS_URL
+              value: https://${PAPERLESS_HOST}
+            - name: PAPERLESS_CONSUMER_BARCODE_SCANNER
+              value: ZXING
+            - name: PAPERLESS_TASK_WORKERS
+              value: "2"
+            - name: PAPERLESS_CONSUMER_POLLING
+              value: "10"
+            - name: USERMAP_UID
+              value: "1027"
+            - name: USERMAP_GID
+              value: "100"
+            - name: PAPERLESS_APPS
+              value: allauth.socialaccount.providers.openid_connect
+            - name: PAPERLESS_SOCIALACCOUNT_ALLOW_SIGNUPS
+              value: "false"
+          volumeMounts:
+            - name: data
+              mountPath: /usr/src/paperless/data
+            - name: media
+              mountPath: /usr/src/paperless/media
+            - name: consume
+              mountPath: /usr/src/paperless/consume
+            - name: export
+              mountPath: /usr/src/paperless/export
+          livenessProbe:
+            httpGet:
+              port: 8000
+              path: /api/
+            initialDelaySeconds: 60
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8000
+              path: /api/
+            initialDelaySeconds: 30
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 5Gi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: paperless-data
+        - name: media
+          persistentVolumeClaim:
+            claimName: paperless-media
+        - name: consume
+          persistentVolumeClaim:
+            claimName: paperless-consume
+        - name: export
+          persistentVolumeClaim:
+            claimName: paperless-export

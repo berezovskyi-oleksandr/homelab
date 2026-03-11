@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: paperless-gotenberg
+  namespace: paperless
+  labels:
+    app: paperless-gotenberg
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: paperless-gotenberg
+  template:
+    metadata:
+      labels:
+        app: paperless-gotenberg
+    spec:
+      securityContext:
+        # gotenberg image uses a non-numeric username so runAsNonRoot cannot be verified by kubelet
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: gotenberg
+          image: gotenberg/gotenberg:8
+          command:
+            - gotenberg
+            - --chromium-disable-javascript=true
+            - --chromium-allow-list=file:///tmp/.*
+          env:
+            - name: TZ
+              value: Europe/Kyiv
+          ports:
+            - containerPort: 3000
+              name: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 256Mi
+            limits:
+              memory: 1Gi

@@ -1,0 +1,141 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-db-backup
+  namespace: paperless
+  labels:
+    app: paperless-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: paperless-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: postgres:18
+              env:
+                - name: PGHOST
+                  value: paperless-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-credentials
+                      key: DB_USERNAME
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-credentials
+                      key: DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-credentials
+                      key: DB_DATABASE_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup-tmp
+                  mountPath: /backup
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n paperless-db backup
+                  resticprofile -c /secrets/profiles.yaml -n paperless-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          volumes:
+            - name: secrets
+              secret:
+                secretName: paperless-backup-config
+            - name: backup-tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: paperless-media-backup
+  namespace: paperless
+  labels:
+    app: paperless-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: paperless-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n paperless-media backup
+                  resticprofile -c /secrets/profiles.yaml -n paperless-media copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: paperless-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: media
+                  mountPath: /media
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: paperless-backup-config
+            - name: media
+              persistentVolumeClaim:
+                claimName: paperless-media
