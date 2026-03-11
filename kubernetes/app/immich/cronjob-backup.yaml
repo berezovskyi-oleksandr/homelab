@@ -4,7 +4,7 @@ metadata:
   name: immich-db-backup
   namespace: immich
   labels:
-    app: immich-db-backup
+    app: immich-backup
 spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid
@@ -15,7 +15,7 @@ spec:
       template:
         metadata:
           labels:
-            app: immich-db-backup
+            app: immich-backup
         spec:
           restartPolicy: OnFailure
           initContainers:
@@ -44,27 +44,40 @@ spec:
                 - -c
                 - pg_dump --clean --if-exists > /backup/dump.sql
               volumeMounts:
-                - name: backup
+                - name: backup-tmp
                   mountPath: /backup
           containers:
-            - name: rclone-upload
-              image: rclone/rclone:1.69
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
               command:
                 - sh
                 - -c
-                - rclone copy /backup/dump.sql b2crypt:immich-db/ --config /config/rclone/rclone.conf
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n immich-db backup
+                  resticprofile -c /secrets/profiles.yaml -n immich-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: immich-backup-config
+                      key: B2_ACCOUNT_KEY
               volumeMounts:
-                - name: backup
-                  mountPath: /backup
-                - name: rclone-config
-                  mountPath: /config/rclone
+                - name: secrets
+                  mountPath: /secrets
                   readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
           volumes:
-            - name: backup
-              emptyDir: {}
-            - name: rclone-config
+            - name: secrets
               secret:
-                secretName: immich-rclone-config
+                secretName: immich-backup-config
+            - name: backup-tmp
+              emptyDir: {}
 ---
 apiVersion: batch/v1
 kind: CronJob
@@ -72,7 +85,7 @@ metadata:
   name: immich-library-backup
   namespace: immich
   labels:
-    app: immich-library-backup
+    app: immich-backup
 spec:
   schedule: "0 4 * * *"
   concurrencyPolicy: Forbid
@@ -83,50 +96,46 @@ spec:
       template:
         metadata:
           labels:
-            app: immich-library-backup
+            app: immich-backup
         spec:
           restartPolicy: OnFailure
           containers:
-            - name: resticprofile-backup
+            - name: resticprofile
               image: creativeprojects/resticprofile:0.32.0
               command:
                 - sh
                 - -c
-                - resticprofile -c /etc/resticprofile/profiles.yaml backup && resticprofile -c /etc/resticprofile/profiles.yaml forget
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n immich-library backup
+                  resticprofile -c /secrets/profiles.yaml -n immich-library copy
               env:
-                - name: AWS_ACCESS_KEY_ID
+                - name: B2_ACCOUNT_ID
                   valueFrom:
                     secretKeyRef:
-                      name: immich-backup-credentials
-                      key: AWS_ACCESS_KEY_ID
-                - name: AWS_SECRET_ACCESS_KEY
+                      name: immich-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
                   valueFrom:
                     secretKeyRef:
-                      name: immich-backup-credentials
-                      key: AWS_SECRET_ACCESS_KEY
+                      name: immich-backup-config
+                      key: B2_ACCOUNT_KEY
               volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
                 - name: library
-                  mountPath: /photos
+                  mountPath: /data
                   readOnly: true
-                - name: resticprofile-config
-                  mountPath: /etc/resticprofile
-                  readOnly: true
-                - name: restic-key
-                  mountPath: /etc/restic
-                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
           volumes:
+            - name: secrets
+              secret:
+                secretName: immich-backup-config
             - name: library
               persistentVolumeClaim:
                 claimName: immich-library
-            - name: resticprofile-config
-              secret:
-                secretName: immich-backup-credentials
-                items:
-                  - key: profiles.yaml
-                    path: profiles.yaml
-            - name: restic-key
-              secret:
-                secretName: immich-backup-credentials
-                items:
-                  - key: RESTIC_KEY
-                    path: key
