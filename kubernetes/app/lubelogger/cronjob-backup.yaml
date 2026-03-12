@@ -1,0 +1,156 @@
+---
+# PostgreSQL database backup
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lubelogger-db-backup
+  namespace: lubelogger
+  labels:
+    app: lubelogger-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: lubelogger-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: postgres:18
+              env:
+                - name: PGHOST
+                  value: lubelogger-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-credentials
+                      key: DB_USERNAME
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-credentials
+                      key: DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-credentials
+                      key: DB_DATABASE_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup-tmp
+                  mountPath: /backup
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+                limits:
+                  memory: 256Mi
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n lubelogger-db backup
+                  resticprofile -c /secrets/profiles.yaml -n lubelogger-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: lubelogger-backup-config
+            - name: backup-tmp
+              emptyDir: {}
+---
+# App data backup (images, documents)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: lubelogger-data-backup
+  namespace: lubelogger
+  labels:
+    app: lubelogger-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: lubelogger-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n lubelogger-data backup
+                  resticprofile -c /secrets/profiles.yaml -n lubelogger-data copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: lubelogger-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: data
+                  mountPath: /data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: lubelogger-backup-config
+            - name: data
+              persistentVolumeClaim:
+                claimName: lubelogger-data

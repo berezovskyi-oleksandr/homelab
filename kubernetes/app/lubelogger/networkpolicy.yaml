@@ -1,0 +1,100 @@
+# Default deny all ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: lubelogger
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Traefik to reach the app
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: lubelogger
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: lubelogger
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+---
+# Allow app to reach DB
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-app-to-db
+  namespace: lubelogger
+spec:
+  podSelector:
+    matchLabels:
+      app: lubelogger-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: lubelogger
+      ports:
+        - port: 5432
+---
+# Allow backup pods to reach DB
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup-to-db
+  namespace: lubelogger
+spec:
+  podSelector:
+    matchLabels:
+      app: lubelogger-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: lubelogger-backup
+      ports:
+        - port: 5432
+---
+# Allow backup pods egress (Synology, B2, DNS, DB)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup-egress
+  namespace: lubelogger
+spec:
+  podSelector:
+    matchLabels:
+      app: lubelogger-backup
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 8888
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
+    - ports:
+        - port: 5432
+          protocol: TCP
+      to:
+        - podSelector:
+            matchLabels:
+              app: lubelogger-db

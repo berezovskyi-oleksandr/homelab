@@ -1,0 +1,84 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: lubelogger
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: lubelogger
+      version: 1.4.2
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: anza-labs
+        namespace: flux-system
+  targetNamespace: lubelogger
+  interval: 1m0s
+  values:
+    image:
+      tag: "v1.6.1"
+
+    updateStrategy:
+      type: RollingUpdate
+      rollingUpdate:
+        maxUnavailable: 100%
+
+    config:
+      LANG: en_US.UTF-8
+      LC_ALL: en_US.UTF-8
+      LOGLEVEL: Information
+      translations: []
+      userConfig:
+        AllowedHosts: "*"
+        EnableAuth: true
+        UseDarkMode: false
+        EnableCsvImports: true
+        UseMPG: false
+        UseDescending: true
+        UseThreeDecimalGasCost: true
+
+    postgres:
+      create: false
+      connect: true
+      name: lubelogger-credentials
+      keyRef: POSTGRES_CONNECTION
+
+    oidc:
+      enabled: true
+      create: false
+      name: lubelogger-credentials
+
+    secret:
+      create: false
+
+    persistence:
+      data:
+        enabled: true
+        existingClaim: lubelogger-data
+
+    ingress:
+      enabled: true
+      className: ""
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - host: ${LUBELOGGER_HOST}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: lubelogger-tls
+          hosts:
+            - ${LUBELOGGER_HOST}
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
