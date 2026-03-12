@@ -18,5 +18,6 @@ variable "clusters" {
     mac_address  = string
     ip_address   = string
     datastore_id = string
+    gpu_mapping  = optional(string)
   }))
 }

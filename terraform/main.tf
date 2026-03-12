@@ -2,8 +2,10 @@ resource "proxmox_virtual_environment_download_file" "talos_iso" {
   content_type = "iso"
   datastore_id = "local"
   node_name    = "pve"
-  url          = "https://github.com/siderolabs/talos/releases/download/v1.12.3/metal-amd64.iso"
-  file_name    = "talos-v1.12.3-metal-amd64.iso"
+  # Factory image with QEMU guest agent + i915 (Intel iGPU) extensions
+  # Schematic: aa948be975ffec096205160edd988ee6d949d72c20a39ca5844fc0a2a3fc8415
+  url       = "https://factory.talos.dev/image/aa948be975ffec096205160edd988ee6d949d72c20a39ca5844fc0a2a3fc8415/v1.12.5/metal-amd64.iso"
+  file_name = "talos-v1.12.5-factory-metal-amd64.iso"
 
   lifecycle {
     prevent_destroy = true
@@ -16,8 +18,10 @@ resource "proxmox_virtual_environment_vm" "talos-vm" {
   name      = "talos-${each.key}-node0"
   tags      = ["terraform", "talos", each.key]
   node_name = "pve"
+  on_boot   = true
 
   bios       = "ovmf"
+  machine    = "i440fx"
   boot_order = ["scsi0", "ide3"]
 
   cpu {
@@ -28,8 +32,14 @@ resource "proxmox_virtual_environment_vm" "talos-vm" {
     dedicated = each.value.memory
   }
 
+  agent {
+    enabled = true
+    type    = "virtio"
+  }
+
   network_device {
     mac_address = each.value.mac_address
+    firewall    = false
   }
 
   cdrom {
@@ -41,10 +51,27 @@ resource "proxmox_virtual_environment_vm" "talos-vm" {
     interface    = "scsi0"
     size         = each.value.disk_size_gb
     datastore_id = each.value.datastore_id
+    aio          = "io_uring"
+    cache        = "none"
+    discard      = "on"
+    ssd          = true
   }
 
   efi_disk {
-    datastore_id = each.value.datastore_id
+    datastore_id      = each.value.datastore_id
+    pre_enrolled_keys = false
+  }
+
+  dynamic "hostpci" {
+    for_each = each.value.gpu_mapping != null ? [each.value.gpu_mapping] : []
+    content {
+      device  = "hostpci0"
+      mapping = hostpci.value
+    }
+  }
+
+  serial_device {
+    device = "socket"
   }
 }
 
