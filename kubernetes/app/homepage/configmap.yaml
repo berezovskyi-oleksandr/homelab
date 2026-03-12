@@ -1,0 +1,111 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homepage-config
+  namespace: homepage
+data:
+  settings.yaml: |
+    ---
+    title: Home
+    theme: light
+    color: slate
+    headerStyle: clean
+    layout:
+      # Define your layout sections here
+
+  services.yaml: |
+    ---
+    - Media:
+        - Jellyfin:
+            icon: jellyfin.png
+            href: https://${JELLYFIN_HOST}
+            description: Media system
+            widget:
+              type: jellyfin
+              url: https://${JELLYFIN_HOST}
+              key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
+              enableBlocks: true
+              enableUser: true
+              enableMediaControl: false
+              showEpisodeNumber: true
+              expandOneStreamToTwoRows: false
+        - Sonarr:
+            icon: sonarr.png
+            href: https://${SONARR_HOST}
+            description: Series management
+            widget:
+              type: sonarr
+              url: https://${SONARR_HOST}
+              username: "{{HOMEPAGE_VAR_SONARR_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_SONARR_PASSWORD}}"
+              key: "{{HOMEPAGE_VAR_SONARR_API_KEY}}"
+        - Radarr:
+            icon: radarr.png
+            href: https://${RADARR_HOST}
+            description: Movie management
+            widget:
+              type: radarr
+              url: https://${RADARR_HOST}
+              username: "{{HOMEPAGE_VAR_RADARR_USERNAME}}"
+              password: "{{HOMEPAGE_VAR_RADARR_PASSWORD}}"
+              key: "{{HOMEPAGE_VAR_RADARR_API_KEY}}"
+        - qBittorrent:
+            icon: qbittorrent.png
+            href: https://${QBITTORRENT_HOST}
+            description: Torrent download
+
+    - Services:
+        - Home Assistant:
+            icon: home-assistant.png
+            href: "{{HOMEPAGE_VAR_HOMEASSISTANT_URL}}"
+            ping: "{{HOMEPAGE_VAR_HOMEASSISTANT_URL}}"
+            description: Home Automation server
+            widget:
+              type: homeassistant
+              url: "{{HOMEPAGE_VAR_HOMEASSISTANT_URL}}"
+              key: "{{HOMEPAGE_VAR_HOMEASSISTANT_API_KEY}}"
+              custom:
+                - state: sensor.system_monitor_processor_temperature
+                  label: CPU
+                - state: sensor.system_monitor_processor_use
+                  label: CPU
+                - state: sensor.system_monitor_memory_usage
+                  label: MEM
+                - state: sensor.system_monitor_swap_usage
+                  label: SWAP
+        - Immich:
+            icon: immich.png
+            href: https://${IMMICH_HOST}
+            description: Photo gallery
+            widget:
+              type: immich
+              url: https://${IMMICH_HOST}
+              key: "{{HOMEPAGE_VAR_IMMICH_API_KEY}}"
+              version: 2
+        - Paperless-ngx:
+            icon: paperless-ngx.png
+            href: https://${PAPERLESS_HOST}/
+            description: Documents storage
+        - Grocy:
+            icon: grocy.png
+            href: https://${GROCY_HOST}/
+            description: Chores and inventory tracker
+
+  widgets.yaml: |
+    ---
+    - resources:
+        cpu: true
+        memory: true
+        disk: /
+    - datetime:
+        text_size: xl
+        format:
+          timeStyle: short
+
+  bookmarks.yaml: |
+    ---
+    # Define your bookmarks here
+
+  kubernetes.yaml: |
+    ---
+    mode: cluster
