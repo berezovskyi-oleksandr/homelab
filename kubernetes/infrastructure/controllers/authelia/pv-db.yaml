@@ -1,17 +1,18 @@
 apiVersion: v1
 kind: PersistentVolume
 metadata:
-  name: authelia-data
+  name: authelia-db
 spec:
   capacity:
-    storage: 1Gi
+    storage: 2Gi
   accessModes:
     - ReadWriteOnce
   storageClassName: ""
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
-    path: /volume3/k8s-storage/authelia-data
+    path: /volume3/k8s-storage/authelia-db

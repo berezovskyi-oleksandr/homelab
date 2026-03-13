@@ -16,6 +16,7 @@ spec:
       version: 0.10.49
   dependsOn:
     - name: authelia-redis
+    - name: authelia-postgresql
   interval: 1m0s
   targetNamespace: authelia
   values:
@@ -25,9 +26,6 @@ spec:
         - name: authelia-config
           configMap:
             name: authelia-config
-        - name: authelia-data
-          persistentVolumeClaim:
-            claimName: authelia-data
         - name: authelia-custom-secrets
           secret:
             secretName: authelia-secrets
@@ -36,6 +34,8 @@ spec:
                 path: OIDC_ISSUER_PRIVATE_KEY
               - key: SMTP_PASSWORD
                 path: SMTP_PASSWORD
+              - key: POSTGRES_PASSWORD
+                path: POSTGRES_PASSWORD
       extraVolumeMounts:
         - name: authelia-config
           mountPath: /configuration.yaml
@@ -43,8 +43,6 @@ spec:
         - name: authelia-config
           mountPath: /users_database.yml
           subPath: users_database.yml
-        - name: authelia-data
-          mountPath: /data
         - name: authelia-custom-secrets
           mountPath: /secrets
           readOnly: true
