@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cryptpad
+  namespace: cryptpad
+spec:
+  selector:
+    app: cryptpad
+  # Session affinity ensures WebSocket connections always reach the same pod
+  sessionAffinity: ClientIP
+  ports:
+    - port: 3000
+      targetPort: 3000
+      name: http
+    - port: 3003
+      targetPort: 3003
+      name: api

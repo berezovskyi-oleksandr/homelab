@@ -1,0 +1,24 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cryptpad
+  namespace: cryptpad
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # No Traefik auth middleware — authentication is handled natively via the OIDC SSO plugin
+spec:
+  tls:
+    - hosts:
+        - ${CRYPTPAD_HOST}
+      secretName: cryptpad-tls
+  rules:
+    - host: ${CRYPTPAD_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cryptpad
+                port:
+                  number: 3000

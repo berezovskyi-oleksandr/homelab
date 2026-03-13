@@ -1,0 +1,175 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cryptpad
+  namespace: cryptpad
+  labels:
+    app: cryptpad
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: cryptpad
+  template:
+    metadata:
+      labels:
+        app: cryptpad
+    spec:
+      securityContext:
+        runAsUser: 4001
+        runAsGroup: 4001
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+      initContainers:
+        # # Create required subdirectories on NFS volumes before subPath mounts are used
+        # - name: init-dirs
+        #   image: busybox:1.36
+        #   securityContext:
+        #     runAsUser: 0
+        #     runAsNonRoot: false
+        #   command:
+        #     - sh
+        #     - -c
+        #     - |
+        #       mkdir -p /data/blob /data/datastore /data/data /data/block /data/onlyoffice
+        #       mkdir -p /config/customize
+        #       chown -R 4001:4001 /data /config
+        #   volumeMounts:
+        #     - name: data
+        #       mountPath: /data
+        #     - name: config
+        #       mountPath: /config
+
+        # Clone the official CryptPad SSO plugin into an emptyDir shared with the main container
+        - name: install-sso-plugin
+          image: alpine/git:v2.47.2
+          securityContext:
+            runAsUser: 0
+            runAsNonRoot: false
+          command:
+            - sh
+            - -c
+            - |
+              git clone --depth=1 https://github.com/cryptpad/sso /plugin
+              chown -R 4001:4001 /plugin
+          volumeMounts:
+            - name: sso-plugin
+              mountPath: /plugin
+
+      containers:
+        - name: cryptpad
+          image: cryptpad/cryptpad:version-2026.2.0
+          ports:
+            - containerPort: 3000
+              name: http
+              protocol: TCP
+            - containerPort: 3003
+              name: api
+              protocol: TCP
+          env:
+            - name: CPAD_CONF
+              value: "/cryptpad/config/config.js"
+            - name: CPAD_MAIN_DOMAIN
+              value: "https://${CRYPTPAD_HOST}"
+            - name: CPAD_SANDBOX_DOMAIN
+              value: "https://${CRYPTPAD_SANDBOX_HOST}"
+            # Trust the Traefik pod CIDR so CryptPad sees real client IPs.
+            # Adjust if your pod CIDR is different.
+            - name: CPAD_TRUSTED_PROXY
+              value: "10.0.0.0/8"
+            - name: CPAD_REALIP_HEADER
+              value: "X-Forwarded-For"
+            - name: CPAD_REALIP_RECURSIVE
+              value: "on"
+            # Downloads and installs OnlyOffice frontend on first start (persisted via data PVC).
+            # First startup will be slower while OnlyOffice assets are fetched.
+            - name: CPAD_INSTALL_ONLYOFFICE
+              value: "yes"
+          volumeMounts:
+            # User data — split into subdirs on a single NFS PVC
+            - name: data
+              mountPath: /cryptpad/blob
+              subPath: blob
+            - name: data
+              mountPath: /cryptpad/datastore
+              subPath: datastore
+            - name: data
+              mountPath: /cryptpad/data
+              subPath: data
+            - name: data
+              mountPath: /cryptpad/block
+              subPath: block
+            # Customization (branding, themes) — persisted on NFS
+            - name: config
+              mountPath: /cryptpad/customize
+              subPath: customize
+            # OnlyOffice dist — local-path (not NFS): rdfind uses hard links which
+            # require a real filesystem, and scanning NFS for dedup is very slow
+            - name: onlyoffice
+              mountPath: /cryptpad/www/common/onlyoffice/dist
+            # SSO plugin — freshly cloned by init container on each pod start
+            - name: sso-plugin
+              mountPath: /cryptpad/lib/plugins/sso
+            # sso.js mounted directly from the secret — overlays the NFS config dir
+            # at this specific file path, no init container needed
+            - name: sso-secret
+              mountPath: /cryptpad/config/sso.js
+              subPath: sso.js
+              readOnly: true
+            - name: application-config
+              mountPath: /cryptpad/customize/application_config.js
+              subPath: application_config.js
+              readOnly: true
+            - name: application-config
+              mountPath: /cryptpad/config/config.js
+              subPath: config.js
+              readOnly: true
+          # npm run build runs on every start and can take several minutes.
+          # startupProbe absorbs that time; liveness/readiness take over once up.
+          startupProbe:
+            httpGet:
+              port: 3000
+              path: /
+            failureThreshold: 120
+            periodSeconds: 60
+          livenessProbe:
+            httpGet:
+              port: 3000
+              path: /
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 3000
+              path: /
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 2Gi
+
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: cryptpad-data
+        - name: config
+          persistentVolumeClaim:
+            claimName: cryptpad-config
+        - name: sso-plugin
+          emptyDir: {}
+        - name: onlyoffice
+          persistentVolumeClaim:
+            claimName: cryptpad-onlyoffice
+        - name: sso-secret
+          secret:
+            secretName: cryptpad-credentials
+            items:
+              - key: sso.js
+                path: sso.js
+        - name: application-config
+          configMap:
+            name: cryptpad-config
