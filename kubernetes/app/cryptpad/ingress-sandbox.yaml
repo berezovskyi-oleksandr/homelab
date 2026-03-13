@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: cryptpad-sandbox
+  namespace: cryptpad
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # The sandbox domain is required by CryptPad for CSP isolation of embedded content.
+    # It must be a different origin from the main domain but points to the same backend.
+    # No auth middleware — this domain serves sandboxed iframes with restrictive CSP headers.
+spec:
+  tls:
+    - hosts:
+        - ${CRYPTPAD_SANDBOX_HOST}
+      secretName: cryptpad-sandbox-tls
+  rules:
+    - host: ${CRYPTPAD_SANDBOX_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: cryptpad
+                port:
+                  number: 3000

@@ -1,0 +1,123 @@
+# Backs up user data (blob, datastore, data, block directories)
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cryptpad-data-backup
+  namespace: cryptpad
+  labels:
+    app: cryptpad-backup
+spec:
+  schedule: "0 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cryptpad-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n cryptpad-data backup
+                  resticprofile -c /secrets/profiles.yaml -n cryptpad-data copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: cryptpad-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: cryptpad-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: data
+                  mountPath: /backup-data
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: cryptpad-backup-config
+            - name: data
+              persistentVolumeClaim:
+                claimName: cryptpad-data
+---
+# Backs up config and customization directories
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: cryptpad-config-backup
+  namespace: cryptpad
+  labels:
+    app: cryptpad-backup
+spec:
+  schedule: "0 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: cryptpad-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n cryptpad-config backup
+                  resticprofile -c /secrets/profiles.yaml -n cryptpad-config copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: cryptpad-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: cryptpad-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: config
+                  mountPath: /backup-config
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 50m
+                  memory: 128Mi
+                limits:
+                  memory: 512Mi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: cryptpad-backup-config
+            - name: config
+              persistentVolumeClaim:
+                claimName: cryptpad-config

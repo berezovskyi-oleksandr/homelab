@@ -1,0 +1,56 @@
+# Default deny all ingress
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny-ingress
+  namespace: cryptpad
+spec:
+  podSelector: {}
+  policyTypes:
+    - Ingress
+---
+# Allow Traefik to reach the CryptPad pod (both HTTP and API/WebSocket ports)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-ingress-controller
+  namespace: cryptpad
+spec:
+  podSelector:
+    matchLabels:
+      app: cryptpad
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: traefik
+      ports:
+        - port: 3000
+        - port: 3003
+---
+# Allow backup pods egress to Synology (restic rest-server), B2, and DNS
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup-egress
+  namespace: cryptpad
+spec:
+  podSelector:
+    matchLabels:
+      app: cryptpad-backup
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 8000
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
