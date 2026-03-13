@@ -38,7 +38,7 @@ data:
         //enforceMFA: false,
         //logIP: false,
         adminKeys: [
-    
+          "[oleksandr@cryptpad.berezovskyi.dev/wiMN+oF1CaWHMaWxv11M+xqvnjXfNgshqoKIvEcG9Ss=]"
         ],
         //inactiveTime: 90, // days
         //archiveRetentionTime: 15,
