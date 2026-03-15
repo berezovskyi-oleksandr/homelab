@@ -16,9 +16,8 @@ spec:
         namespace: flux-system
   interval: 1m0s
   values:
-    deployment:
-      strategy:
-        type: Recreate
+    updateStrategy:
+      type: Recreate
     providers:
       kubernetesCRD:
         allowCrossNamespace: true
