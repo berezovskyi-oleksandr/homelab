@@ -28,6 +28,8 @@ spec:
     ingressRoute:
       dashboard:
         enabled: true
+    additionalArguments:
+      - "--entryPoints.websecure.http.middlewares=traefik-hsts@kubernetescrd"
     service:
       type: ClusterIP
     ports:
