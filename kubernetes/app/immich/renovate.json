@@ -1,0 +1,41 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/immich/.+\\.yaml$"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["kubernetes/app/immich/release\\.yaml$"],
+      "matchStrings": ["repository:\\s*(?<depName>[^\\s]+)\\s+tag:\\s*(?<currentValue>[^\\s]+)"],
+      "depNameTemplate": "immich-app/immich",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/immich/**"],
+      "semanticCommitScope": "k8s/immich"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/immich/**"],
+      "matchPackageNames": ["immich", "immich-app/immich", "ghcr.io/immich-app/immich-server"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/immich/**"],
+      "matchPackageNames": ["immich", "immich-app/immich", "ghcr.io/immich-app/immich-server"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images (postgres, resticprofile)",
+      "matchFileNames": ["kubernetes/app/immich/**"],
+      "matchPackageNames": [
+        "ghcr.io/immich-app/postgres",
+        "creativeprojects/resticprofile"
+      ],
+      "enabled": false
+    }
+  ]
+}
