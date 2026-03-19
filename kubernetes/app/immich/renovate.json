@@ -7,7 +7,8 @@
       "customType": "regex",
       "fileMatch": ["kubernetes/app/immich/release\\.yaml$"],
       "matchStrings": ["repository:\\s*(?<depName>[^\\s]+)\\s+tag:\\s*(?<currentValue>[^\\s]+)"],
-      "datasourceTemplate": "docker"
+      "datasourceTemplate": "docker",
+      "versioningTemplate": "semver-coerced"
     }
   ],
   "packageRules": [
