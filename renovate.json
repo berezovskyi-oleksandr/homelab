@@ -3,7 +3,8 @@
   "extends": [
     "config:recommended",
     ":semanticCommits",
-    "local>berezovskyi-oleksandr/homelab//kubernetes/app/jellyfin/renovate.json"
+    "local>berezovskyi-oleksandr/homelab//kubernetes/app/jellyfin/renovate.json",
+    "local>berezovskyi-oleksandr/homelab//kubernetes/app/media/renovate.json"
   ],
   "enabledManagers": ["kubernetes"],
   "automergeType": "branch",
