@@ -1,0 +1,88 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: seerr
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: seerr-chart
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: seerr
+        namespace: flux-system
+      version: 3.3.0
+  interval: 1m0s
+  targetNamespace: media
+  values:
+    image:
+      tag: v3.1.0
+    podLabels:
+      app: seerr
+    extraEnv:
+      - name: DB_TYPE
+        value: postgres
+      - name: DB_HOST
+        value: seerr-db
+      - name: DB_PORT
+        value: "5432"
+      - name: DB_USER
+        valueFrom:
+          secretKeyRef:
+            name: seerr-credentials
+            key: SEERR_DB_USER
+      - name: DB_PASS
+        valueFrom:
+          secretKeyRef:
+            name: seerr-credentials
+            key: SEERR_DB_PASSWORD
+      - name: DB_NAME
+        valueFrom:
+          secretKeyRef:
+            name: seerr-credentials
+            key: SEERR_DB_NAME
+      - name: TZ
+        value: Europe/Kyiv
+    probes:
+      startupProbe:
+        tcpSocket:
+          port: http
+        initialDelaySeconds: 10
+        periodSeconds: 5
+        failureThreshold: 30
+      livenessProbe:
+        httpGet:
+          port: http
+          path: /api/v1/status
+        periodSeconds: 30
+        failureThreshold: 5
+      readinessProbe:
+        httpGet:
+          port: http
+          path: /api/v1/status
+        periodSeconds: 10
+    resources:
+      requests:
+        cpu: 50m
+        memory: 128Mi
+      limits:
+        memory: 512Mi
+    config:
+      persistence:
+        existingClaim: seerr-config
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+      hosts:
+        - host: ${SEERR_HOST}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - hosts:
+            - ${SEERR_HOST}
+          secretName: seerr-tls

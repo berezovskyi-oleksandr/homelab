@@ -24,6 +24,7 @@ spec:
           - qbittorrent
           - sonarr
           - radarr
+          - seerr
   policyTypes:
     - Ingress
   ingress:
@@ -95,7 +96,7 @@ spec:
             matchLabels:
               app: radarr
 ---
-# Allow prowlarr to reach sonarr, radarr, and qbittorrent
+# Allow prowlarr and seerr to reach sonarr, radarr, and qbittorrent
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -117,6 +118,9 @@ spec:
         - podSelector:
             matchLabels:
               app: prowlarr
+        - podSelector:
+            matchLabels:
+              app: seerr
 ---
 # Allow qbittorrent to receive connections from sonarr, radarr, and external BT traffic
 apiVersion: networking.k8s.io/v1
@@ -143,3 +147,42 @@ spec:
           protocol: TCP
         - port: 23312
           protocol: UDP
+---
+# Allow jellyfin to reach seerr (cross-namespace)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-jellyfin-to-seerr
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app: seerr
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: jellyfin
+          podSelector:
+            matchLabels:
+              app: jellyfin
+---
+# seerr-db: only reachable from seerr
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: seerr-db
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app: seerr-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: seerr

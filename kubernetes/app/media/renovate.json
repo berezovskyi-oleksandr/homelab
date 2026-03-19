@@ -2,14 +2,28 @@
   "kubernetes": {
     "fileMatch": ["kubernetes/app/media/.+\\.yaml$"]
   },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["kubernetes/app/media/release-seerr\\.yaml$"],
+      "matchStrings": ["tag:\\s*(?<currentValue>v[^\\s]+)"],
+      "depNameTemplate": "seerr-team/seerr",
+      "datasourceTemplate": "github-releases"
+    }
+  ],
   "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/media/**"],
+      "semanticCommitScope": "k8s/media"
+    },
     {
       "matchFileNames": ["kubernetes/app/media/**"],
       "matchPackageNames": [
         "lscr.io/linuxserver/sonarr",
         "lscr.io/linuxserver/radarr",
         "lscr.io/linuxserver/prowlarr",
-        "lscr.io/linuxserver/qbittorrent"
+        "lscr.io/linuxserver/qbittorrent",
+        "seerr-team/seerr"
       ],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
@@ -20,7 +34,8 @@
         "lscr.io/linuxserver/sonarr",
         "lscr.io/linuxserver/radarr",
         "lscr.io/linuxserver/prowlarr",
-        "lscr.io/linuxserver/qbittorrent"
+        "lscr.io/linuxserver/qbittorrent",
+        "seerr-team/seerr"
       ],
       "matchUpdateTypes": ["major"],
       "automerge": false
