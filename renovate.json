@@ -7,10 +7,6 @@
     "local>berezovskyi-oleksandr/homelab//kubernetes/app/media/renovate.json"
   ],
   "enabledManagers": ["kubernetes"],
-  "kubernetes": {
-    "fileMatch": ["kubernetes/.+\\.yaml$"]
-  },
   "automergeType": "branch",
-  "reviewers": ["berezovskyi-oleksandr"],
   "assignees": ["berezovskyi-oleksandr"]
 }

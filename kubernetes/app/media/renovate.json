@@ -1,4 +1,7 @@
 {
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/media/.+\\.yaml$"]
+  },
   "packageRules": [
     {
       "matchFileNames": ["kubernetes/app/media/**"],

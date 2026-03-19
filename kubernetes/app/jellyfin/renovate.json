@@ -1,4 +1,7 @@
 {
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/jellyfin/.+\\.yaml$"]
+  },
   "packageRules": [
     {
       "matchFileNames": ["kubernetes/app/jellyfin/**"],
