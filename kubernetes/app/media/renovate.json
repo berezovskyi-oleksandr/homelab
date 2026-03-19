@@ -11,16 +11,6 @@
         "lscr.io/linuxserver/prowlarr",
         "lscr.io/linuxserver/qbittorrent"
       ],
-      "versioning": "loose"
-    },
-    {
-      "matchFileNames": ["kubernetes/app/media/**"],
-      "matchPackageNames": [
-        "lscr.io/linuxserver/sonarr",
-        "lscr.io/linuxserver/radarr",
-        "lscr.io/linuxserver/prowlarr",
-        "lscr.io/linuxserver/qbittorrent"
-      ],
       "matchUpdateTypes": ["patch", "minor"],
       "automerge": true
     },
@@ -37,7 +27,7 @@
     },
     {
       "matchFileNames": ["kubernetes/app/media/**"],
-      "matchPackageNames": ["busybox", "postgres"],
+      "matchPackageNames": ["busybox", "postgres", "rclone/rclone"],
       "enabled": false
     }
   ]
