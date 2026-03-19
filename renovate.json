@@ -4,9 +4,10 @@
     "config:recommended",
     ":semanticCommits",
     "local>berezovskyi-oleksandr/homelab//kubernetes/app/jellyfin/renovate.json",
-    "local>berezovskyi-oleksandr/homelab//kubernetes/app/media/renovate.json"
+    "local>berezovskyi-oleksandr/homelab//kubernetes/app/media/renovate.json",
+    "local>berezovskyi-oleksandr/homelab//kubernetes/app/immich/renovate.json"
   ],
-  "enabledManagers": ["kubernetes"],
+  "enabledManagers": ["kubernetes", "flux", "helm-values"],
   "automergeType": "branch",
   "ignoreTests": true,
   "assignees": ["berezovskyi-oleksandr"]
