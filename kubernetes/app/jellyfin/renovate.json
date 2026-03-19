@@ -1,0 +1,29 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/jellyfin/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/jellyfin/**"],
+      "semanticCommitScope": "k8s/jellyfin"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/jellyfin/**"],
+      "matchPackageNames": ["jellyfin/jellyfin"],
+      "matchUpdateTypes": ["patch"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/jellyfin/**"],
+      "matchPackageNames": ["jellyfin/jellyfin"],
+      "matchUpdateTypes": ["minor", "major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore busybox init container",
+      "matchFileNames": ["kubernetes/app/jellyfin/**"],
+      "matchPackageNames": ["busybox"],
+      "enabled": false
+    }
+  ]
+}
