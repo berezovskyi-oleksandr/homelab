@@ -1,10 +1,10 @@
 apiVersion: batch/v1
 kind: CronJob
 metadata:
-  name: sonarr-db-backup
+  name: media-db-backup
   namespace: media
   labels:
-    app: sonarr-db-backup
+    app: media-backup
 spec:
   schedule: "0 3 * * *"
   concurrencyPolicy: Forbid
@@ -15,11 +15,11 @@ spec:
       template:
         metadata:
           labels:
-            app: sonarr-db-backup
+            app: media-backup
         spec:
           restartPolicy: OnFailure
           initContainers:
-            - name: pg-dump
+            - name: pg-dump-sonarr
               image: postgres:14.21
               env:
                 - name: PGHOST
@@ -42,52 +42,11 @@ spec:
               command:
                 - sh
                 - -c
-                - pg_dump --clean --if-exists -v > /backup/dump.sql
+                - pg_dump --clean --if-exists > /backup/sonarr.sql
               volumeMounts:
-                - name: backup
+                - name: backup-tmp
                   mountPath: /backup
-          containers:
-            - name: rclone-upload
-              image: rclone/rclone:1.69
-              command:
-                - sh
-                - -c
-                - rclone copy /backup/dump.sql b2crypt:sonarr/ --config /config/rclone/rclone.conf -v 2>&1
-              volumeMounts:
-                - name: backup
-                  mountPath: /backup
-                - name: rclone-config
-                  mountPath: /config/rclone
-                  readOnly: true
-          volumes:
-            - name: backup
-              emptyDir: {}
-            - name: rclone-config
-              secret:
-                secretName: rclone-config
----
-apiVersion: batch/v1
-kind: CronJob
-metadata:
-  name: radarr-db-backup
-  namespace: media
-  labels:
-    app: radarr-db-backup
-spec:
-  schedule: "0 3 * * *"
-  concurrencyPolicy: Forbid
-  successfulJobsHistoryLimit: 3
-  failedJobsHistoryLimit: 3
-  jobTemplate:
-    spec:
-      template:
-        metadata:
-          labels:
-            app: radarr-db-backup
-        spec:
-          restartPolicy: OnFailure
-          initContainers:
-            - name: pg-dump
+            - name: pg-dump-radarr
               image: postgres:14.21
               env:
                 - name: PGHOST
@@ -110,26 +69,70 @@ spec:
               command:
                 - sh
                 - -c
-                - pg_dump --clean --if-exists -v > /backup/dump.sql
+                - pg_dump --clean --if-exists > /backup/radarr.sql
               volumeMounts:
-                - name: backup
+                - name: backup-tmp
                   mountPath: /backup
-          containers:
-            - name: rclone-upload
-              image: rclone/rclone:1.69
+            - name: pg-dump-seerr
+              image: postgres:14.21
+              env:
+                - name: PGHOST
+                  value: seerr-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: seerr-credentials
+                      key: SEERR_DB_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: seerr-credentials
+                      key: SEERR_DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: seerr-credentials
+                      key: SEERR_DB_NAME
               command:
                 - sh
                 - -c
-                - rclone copy /backup/dump.sql b2crypt:radarr/ --config /config/rclone/rclone.conf -v 2>&1
+                - pg_dump --clean --if-exists > /backup/seerr.sql
               volumeMounts:
-                - name: backup
+                - name: backup-tmp
                   mountPath: /backup
-                - name: rclone-config
-                  mountPath: /config/rclone
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n sonarr-db backup
+                  resticprofile -c /secrets/profiles.yaml -n sonarr-db copy
+                  resticprofile -c /secrets/profiles.yaml -n radarr-db backup
+                  resticprofile -c /secrets/profiles.yaml -n radarr-db copy
+                  resticprofile -c /secrets/profiles.yaml -n seerr-db backup
+                  resticprofile -c /secrets/profiles.yaml -n seerr-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
                   readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
           volumes:
-            - name: backup
-              emptyDir: {}
-            - name: rclone-config
+            - name: secrets
               secret:
-                secretName: rclone-config
+                secretName: media-backup-config
+            - name: backup-tmp
+              emptyDir: {}

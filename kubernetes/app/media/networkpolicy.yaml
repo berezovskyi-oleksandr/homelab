@@ -52,7 +52,7 @@ spec:
               app: sonarr
         - podSelector:
             matchLabels:
-              app: sonarr-db-backup
+              app: media-backup
 ---
 # radarr-db: only reachable from radarr and backup jobs
 apiVersion: networking.k8s.io/v1
@@ -73,7 +73,7 @@ spec:
               app: radarr
         - podSelector:
             matchLabels:
-              app: radarr-db-backup
+              app: media-backup
 ---
 # Allow prowlarr to receive connections from sonarr and radarr
 apiVersion: networking.k8s.io/v1
@@ -169,7 +169,7 @@ spec:
             matchLabels:
               app: jellyfin
 ---
-# seerr-db: only reachable from seerr
+# seerr-db: only reachable from seerr and backup jobs
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:
@@ -186,3 +186,34 @@ spec:
         - podSelector:
             matchLabels:
               app: seerr
+        - podSelector:
+            matchLabels:
+              app: media-backup
+---
+# Allow backup pods egress to Synology (rest-server), B2, DNS, and DB
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup-egress
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app: media-backup
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 8888
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
+    - ports:
+        - port: 5432
+          protocol: TCP
