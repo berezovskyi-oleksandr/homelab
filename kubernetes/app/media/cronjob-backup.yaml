@@ -42,7 +42,7 @@ spec:
               command:
                 - sh
                 - -c
-                - pg_dump --clean --if-exists > /backup/dump.sql
+                - pg_dump --clean --if-exists -v > /backup/dump.sql
               volumeMounts:
                 - name: backup
                   mountPath: /backup
@@ -52,7 +52,7 @@ spec:
               command:
                 - sh
                 - -c
-                - rclone copy /backup/dump.sql r2crypt:sonarr/ --config /config/rclone/rclone.conf
+                - rclone copy /backup/dump.sql b2crypt:sonarr/ --config /config/rclone/rclone.conf -v 2>&1
               volumeMounts:
                 - name: backup
                   mountPath: /backup
@@ -110,7 +110,7 @@ spec:
               command:
                 - sh
                 - -c
-                - pg_dump --clean --if-exists > /backup/dump.sql
+                - pg_dump --clean --if-exists -v > /backup/dump.sql
               volumeMounts:
                 - name: backup
                   mountPath: /backup
@@ -120,7 +120,7 @@ spec:
               command:
                 - sh
                 - -c
-                - rclone copy /backup/dump.sql r2crypt:radarr/ --config /config/rclone/rclone.conf
+                - rclone copy /backup/dump.sql b2crypt:radarr/ --config /config/rclone/rclone.conf -v 2>&1
               volumeMounts:
                 - name: backup
                   mountPath: /backup
