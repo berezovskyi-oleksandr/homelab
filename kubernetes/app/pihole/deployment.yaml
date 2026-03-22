@@ -8,7 +8,7 @@ metadata:
 spec:
   replicas: 1
   strategy:
-    type: Recreate
+    type: RollingUpdate
   selector:
     matchLabels:
       app: pihole
@@ -17,23 +17,25 @@ spec:
       labels:
         app: pihole
     spec:
+      initContainers:
+        - name: fix-permissions
+          image: busybox:latest
+          command: ["sh", "-c", "chown 1000:1000 /data"]
+          volumeMounts:
+            - name: pihole-ftl-db
+              mountPath: /data
       containers:
         - name: pihole
-          image: pihole/pihole:2025.08.0
+          image: pihole/pihole:2026.02.0
+          envFrom:
+            - configMapRef:
+                name: pihole-config
           env:
-            - name: TZ
-              value: Europe/Kyiv
             - name: FTLCONF_webserver_api_password
               valueFrom:
                 secretKeyRef:
                   name: pihole-credentials
                   key: WEBPASSWORD
-            - name: FTLCONF_dns_listeningMode
-              value: all
-            - name: FTLCONF_dns_upstreams
-              value: "127.0.0.1#5353"
-            - name: FTLCONF_misc_etc_dnsmasq_d
-              value: "true"
           ports:
             - containerPort: 53
               protocol: TCP
@@ -44,11 +46,47 @@ spec:
             - containerPort: 80
               protocol: TCP
               name: http
+          readinessProbe:
+            exec:
+              command:
+                - dig
+                - +norecurse
+                - +retry=0
+                - +time=2
+                - healthcheck.pi.hole
+                - "@127.0.0.1"
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - /bin/bash
+                  - -c
+                  - |
+                    (
+                      SID=""
+                      until curl -sf "http://localhost/api/lists?sid=$SID" | grep -q '"lists"'; do
+                        SID=$(curl -s -X POST http://localhost/api/auth \
+                          -d "{\"password\":\"$FTLCONF_webserver_api_password\"}" | \
+                          grep -o '"sid":"[^"]*"' | cut -d'"' -f4)
+                        sleep 5
+                      done
+                      grep -v '^#\|^$' /etc/pihole-adlists/adlists.txt | while read -r url; do
+                        curl -s -X POST "http://localhost/api/lists?type=block&sid=$SID" \
+                          -d "{\"address\":\"$url\"}" > /dev/null
+                      done
+                      curl -s -X POST "http://localhost/api/action/gravity?sid=$SID" > /dev/null
+                    ) &
           volumeMounts:
             - name: pihole-config
               mountPath: /etc/pihole
             - name: pihole-dnsmasq
               mountPath: /etc/dnsmasq.d
+            - name: pihole-adlists
+              mountPath: /etc/pihole-adlists
+            - name: pihole-ftl-db
+              mountPath: /data
 
         - name: dnscrypt-proxy
           image: klutchell/dnscrypt-proxy:latest
@@ -62,11 +100,16 @@ spec:
 
       volumes:
         - name: pihole-config
-          persistentVolumeClaim:
-            claimName: pihole-config
+          emptyDir: {}
         - name: pihole-dnsmasq
-          persistentVolumeClaim:
-            claimName: pihole-dnsmasq
+          emptyDir: {}
+        - name: pihole-ftl-db
+          hostPath:
+            path: /var/hostPath/pihole
+            type: DirectoryOrCreate
+        - name: pihole-adlists
+          configMap:
+            name: pihole-adlists
         - name: dnscrypt-config
           configMap:
             name: dnscrypt-config

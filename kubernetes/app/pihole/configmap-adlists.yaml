@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: pihole-adlists
+  namespace: pihole
+data:
+  adlists.txt: |
+    # Hagezi Multi Pro — ads, tracking, malware, scam, crypto
+    https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/pro.txt
+    # Hagezi Threat Intelligence Feeds — malware, C2, phishing
+    https://cdn.jsdelivr.net/gh/hagezi/dns-blocklists@latest/hosts/tif.txt
+    # Ukrainian Security Filter — phishing/fraud targeting Ukrainian citizens
+    https://raw.githubusercontent.com/braveinnovators/ukrainian-security-filter/main/lists/domains.txt
+    # Phishing Army Extended
+    https://phishing.army/download/phishing_army_blocklist_extended.txt
