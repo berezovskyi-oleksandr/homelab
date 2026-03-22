@@ -97,6 +97,8 @@ spec:
             - name: dnscrypt-config
               mountPath: /config/dnscrypt-proxy.toml
               subPath: dnscrypt-proxy.toml
+            - name: dnscrypt-tmp
+              mountPath: /tmp
 
       volumes:
         - name: pihole-config
@@ -110,6 +112,8 @@ spec:
         - name: pihole-adlists
           configMap:
             name: pihole-adlists
+        - name: dnscrypt-tmp
+          emptyDir: {}
         - name: dnscrypt-config
           configMap:
             name: dnscrypt-config

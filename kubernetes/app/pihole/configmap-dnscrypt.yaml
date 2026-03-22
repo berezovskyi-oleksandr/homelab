@@ -12,28 +12,22 @@ data:
     block_ipv6 = true
     dnscrypt_servers = true
     doh_servers = true
-    require_dnssec = false
+    require_dnssec = true
     force_tcp = false
     timeout = 5000
     keepalive = 30
-    lb_strategy = 'p2'
-    cache = true
-    cache_size = 4096
-    cache_min_ttl = 2400
-    cache_max_ttl = 86400
+    lb_strategy = 'ph'
+    cache = false
     http3 = true
     http3_probe = true
 
     fallback_resolvers = ['8.8.8.8:53', '1.1.1.1:53']
     ignore_system_dns = true
 
-    server_names = []
+    server_names = ['cloudflare', 'google', 'quad9-dnscrypt-ip4-filter-pri', 'mullvad-doh', 'dns4eu']
 
-    [static]
-      # Cloudflare DoH
-      [static.'cloudflare']
-      stamp = 'sdns://AgcAAAAAAAAABzEuMC4wLjEAEmRucy5jbG91ZGZsYXJlLmNvbQovZG5zLXF1ZXJ5'
-
-      # Google DoH
-      [static.'google']
-      stamp = 'sdns://AgUAAAAAAAAABzguOC44LjggsKKKE4EwvtIbNjGjagI2607EdKSVHowYZtyvD9iPrkkHOC44LjguOAovZG5zLXF1ZXJ5'
+    [sources]
+      [sources.'public-resolvers']
+      urls = ['https://raw.githubusercontent.com/DNSCrypt/dnscrypt-resolvers/master/v3/public-resolvers.md', 'https://download.dnscrypt.info/resolvers-list/v3/public-resolvers.md']
+      cache_file = '/tmp/public-resolvers.md'
+      minisign_key = 'RWQf6LRCGA9i53mlYecO4IzT51TGPpvWucNSCh1CBM0QTaLn73Y7GFO3'
