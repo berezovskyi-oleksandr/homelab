@@ -13,3 +13,6 @@ data:
     https://raw.githubusercontent.com/braveinnovators/ukrainian-security-filter/main/lists/domains.txt
     # Phishing Army Extended
     https://phishing.army/download/phishing_army_blocklist_extended.txt
+  unfiltered-clients.txt: |
+    # Clients without ad blocking (one per line, use IP — PiHole matches by IP, not hostname)
+    10.127.0.10

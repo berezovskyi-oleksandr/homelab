@@ -74,9 +74,14 @@ spec:
                       done
                       grep -v '^#\|^$' /etc/pihole-adlists/adlists.txt | while read -r url; do
                         curl -s -X POST "http://localhost/api/lists?type=block&sid=$SID" \
-                          -d "{\"address\":\"$url\"}" > /dev/null
+                          -d "{\"address\":\"$url\"}"
                       done
-                      curl -s -X POST "http://localhost/api/action/gravity?sid=$SID" > /dev/null
+                      grep -v '^#\|^$' /etc/pihole-adlists/unfiltered-clients.txt | while read -r client; do
+                        curl -s -X POST "http://localhost/api/clients?sid=$SID" \
+                          -d "{\"client\":\"$client\",\"groups\":[]}"
+                      done
+                      # NOTE: gravity must be last — it blocks until complete and may outlive the SID
+                      curl -s -X POST "http://localhost/api/action/gravity?sid=$SID"
                     ) &
           volumeMounts:
             - name: pihole-config
