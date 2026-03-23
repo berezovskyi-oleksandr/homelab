@@ -19,7 +19,8 @@ spec:
     spec:
       initContainers:
         - name: fix-permissions
-          image: busybox:latest
+          image: busybox:1.37
+          imagePullPolicy: IfNotPresent
           command: ["sh", "-c", "chown 1000:1000 /data"]
           volumeMounts:
             - name: pihole-ftl-db
@@ -94,7 +95,8 @@ spec:
               mountPath: /data
 
         - name: dnscrypt-proxy
-          image: klutchell/dnscrypt-proxy:latest
+          image: klutchell/dnscrypt-proxy:v2.1.15
+          imagePullPolicy: IfNotPresent
           env:
             - name: TZ
               value: Europe/Kyiv
