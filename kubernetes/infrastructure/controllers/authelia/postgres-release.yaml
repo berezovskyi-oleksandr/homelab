@@ -25,5 +25,11 @@ spec:
         adminPasswordKey: POSTGRES_ADMIN_PASSWORD
         userPasswordKey: POSTGRES_PASSWORD
     primary:
+      startupProbe:
+        enabled: true
+        initialDelaySeconds: 10
+        periodSeconds: 10
+        failureThreshold: 30
+        timeoutSeconds: 5
       persistence:
         existingClaim: authelia-db
