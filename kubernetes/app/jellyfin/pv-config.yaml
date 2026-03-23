@@ -11,7 +11,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/jellyfin-config
@@ -29,7 +31,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/jellyfin-cache

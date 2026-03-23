@@ -12,7 +12,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: ${ARCHMIRROR_NFS_PATH}

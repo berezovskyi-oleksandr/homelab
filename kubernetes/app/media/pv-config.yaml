@@ -11,7 +11,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/qbittorrent-config
@@ -29,7 +31,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/prowlarr-config
@@ -47,7 +51,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/radarr-config
@@ -65,7 +71,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/radarr-db
@@ -83,7 +91,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/sonarr-config
@@ -101,7 +111,9 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - nointr
+    - noatime
+    - timeo=30
+    - retrans=3
   nfs:
     server: synology.storage.lviv
     path: /volume3/k8s-storage/sonarr-db

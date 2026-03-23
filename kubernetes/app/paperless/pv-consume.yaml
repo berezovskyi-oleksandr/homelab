@@ -11,7 +11,7 @@ spec:
   persistentVolumeReclaimPolicy: Retain
   mountOptions:
     - hard
-    - intr
+    - noatime
     - timeo=30
     - retrans=3
   nfs:
