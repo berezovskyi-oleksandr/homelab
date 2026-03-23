@@ -25,7 +25,7 @@ data:
     for i in $(seq 1 $MAX_RETRIES); do
         log "Sync attempt $i/$MAX_RETRIES from $MIRROR_URL"
 
-        if rsync --timeout=7200 \
+        if rsync --timeout=600 \
                  -rlptH --safe-links --delete-delay --delay-updates \
                  -v --info=progress2 \
                  "$MIRROR_URL/" "$TARGET_DIR/"; then
