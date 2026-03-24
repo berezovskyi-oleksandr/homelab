@@ -12,7 +12,7 @@ stringData:
     RADARR_HOST: ENC[AES256_GCM,data:+hfEpkeFPsumvzJ3htbVVGpdqf0TVg==,iv:HXlnjNAKSPen/YKG0u63lg3i8oNxX4r5SYLoXBYebMg=,tag:XWp7gQAk6o03sAV7ZfwGHg==,type:str]
     MEDIA_NFS_PATH: ENC[AES256_GCM,data:/22ZF2bS4OJkET5fap8=,iv:rp6e2hcHJmofmBNWLX46+tO0Z/CO7658+Rrkj+C3FaE=,tag:+YtwLSJ8nS0yuMvQiLD6wg==,type:str]
     IMMICH_HOST: ENC[AES256_GCM,data:FUhW5dlQp0dAgs02PP2pglI4IWdRSQ==,iv:ngItoX4Yg0ORRO0JnMC3kyp3m6ALTozWPpmJkQ3mMb0=,tag:X9lMROC6EcrZxyMkIfgJAw==,type:str]
-    IMMICH_UPLOAD_NFS_PATH: ENC[AES256_GCM,data:AWu7nZm1u1tZ7OG/Y+C7,iv:89dUgBTL+Pw6n03yXJRtzPSiC0R/ma7fM8dWmFSRW8E=,tag:pETM1zw+TpnuFN14Wr2u8A==,type:str]
+    IMMICH_UPLOAD_NFS_PATH: ENC[AES256_GCM,data:Ef4j5IWZGUS7e/jAmWKDS2II2ODaAg==,iv:zmypns5/xxi6Cw9Ds19ocCe4brV9oGzUvDzf/B0eEKg=,tag:J0uPODZO4ziK+IwknVtFbw==,type:str]
     JELLYFIN_HOST: ENC[AES256_GCM,data:LCuz8fQ2Gehxsu8wKqTLoGWCWRlb3M6Z,iv:EEDM9iyhKW6LETARtFpKwCmNNZZdlDyCG2RimK3ybTE=,tag:moFp/deJaz/Kkj5nDKacWQ==,type:str]
     JELLYFIN_INTERNAL_HOST: ENC[AES256_GCM,data:gwVKPi5Lim30G090/LVSE2+/M+UI,iv://2yET87s4AwS6dom3DcITqBUzJq5n7aM7963Eyt+y0=,tag:dz6sohtYmtBBrxfAMrN3MQ==,type:str]
     ARCHMIRROR_HOST: ENC[AES256_GCM,data:KATP5naJIkO0nsa+YYXylMgL0ulvorc=,iv:nYP+RuMLDS7DKZCuxjD9cwliX6zfdepSY8q9cL6swH8=,tag:WBqdwRZSolhg+/Ps7oAP9w==,type:str]
@@ -45,7 +45,7 @@ sops:
             MGJ6TFpwR0diNjlEN2syZkhNMFNwRDQK9pzmQGB0GQu6ogMIJW+kugvBNj3w+dxW
             bfEF9GAznIM/N5rPytF4wNgqwfoAF7GwumgA+iD43wprKtUJn+6dqw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-03-19T21:49:14Z"
-    mac: ENC[AES256_GCM,data:FG6XQHJ/k8Hm2d+kxMAdT/e03lZE8Xzk4hyNTaiKloffcwUONvzlWsb9oieDZEQQw5v23SgL9mVCIzcz2toNz5UnO2TE4VRZTppTT6PZ+/uU1qzxNYOySInRH0P2zwX3lS8JCD10klF9vWQ/6565/rwiZhECK4ofrJ3blrBaQ+k=,iv:TRr6TkJ0tNRHEZt6OMjo+SH/3FNIiXcPqwZW2n4pmvs=,tag:j5U+b90VJpk85CWoefKCEw==,type:str]
+    lastmodified: "2026-03-24T07:43:54Z"
+    mac: ENC[AES256_GCM,data:HDM/kZW9TxuIN6FBpE2kIdac2IU3yam807hfOAMRmX5l9DgaItPHmW6s/mSV2Mb9jDmWB1LjPipVcgPGdU/Lr4V6QcVPsaf+/KA73kAw4BBgiBOPFwBS0gdqGKfXbHS9uh3BTtjenvFnDD+tTnBsEOHSYjvfYFucE4A1GQc2EzU=,iv:lBEz0ayGP7dyNZ6YMIjpHMg2c11YdCWGpC7QLfTxy+8=,tag:nWCffX0iISgld7uGcdN9EQ==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.12.1
