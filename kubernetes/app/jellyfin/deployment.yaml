@@ -27,6 +27,9 @@ spec:
               cd /config/data
               for db in *.db; do
                 [ -f "$db" ] && [ ! -L "$db" ] || continue
+                case "$db" in
+                  kodisyncqueue.db) echo "Skipping $db (LiteDB incompatible with symlinks)"; continue ;;
+                esac
                 echo "Migrating $db to local storage..."
                 cp "$db" "/db-local/$db"
                 rm "$db"
