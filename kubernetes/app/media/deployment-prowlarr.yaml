@@ -18,15 +18,31 @@ spec:
         app: prowlarr
     spec:
       initContainers:
-        - name: wait-for-config
+        - name: wait-for-db
           image: busybox:1.37
           command:
             - sh
             - -c
-            - until ls /config > /dev/null 2>&1; do echo "Waiting for config volume..."; sleep 5; done
-          volumeMounts:
-            - name: config
-              mountPath: /config
+            - until nc -z prowlarr-db 5432; do echo "Waiting for database..."; sleep 2; done
+        - name: init-log-db
+          image: postgres:14.21
+          env:
+            - name: PGHOST
+              value: prowlarr-db
+            - name: PGUSER
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: PROWLARR_DB_USER
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: PROWLARR_DB_PASSWORD
+          command:
+            - sh
+            - -c
+            - psql -d postgres -c 'CREATE DATABASE "prowlarr-log"' || true
       containers:
         - name: prowlarr
           image: lscr.io/linuxserver/prowlarr:2.3.0
@@ -43,6 +59,7 @@ spec:
               path: /ping
             initialDelaySeconds: 30
             periodSeconds: 30
+            timeoutSeconds: 10
             failureThreshold: 5
           readinessProbe:
             httpGet:
@@ -50,6 +67,7 @@ spec:
               path: /ping
             initialDelaySeconds: 10
             periodSeconds: 10
+            timeoutSeconds: 10
           volumeMounts:
             - name: config
               mountPath: /config

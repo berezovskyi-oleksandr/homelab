@@ -41,6 +41,26 @@ spec:
 apiVersion: v1
 kind: PersistentVolume
 metadata:
+  name: prowlarr-db
+spec:
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: ""
+  persistentVolumeReclaimPolicy: Retain
+  mountOptions:
+    - hard
+    - noatime
+    - timeo=30
+    - retrans=3
+  nfs:
+    server: synology.storage.lviv
+    path: /volume3/k8s-storage/prowlarr-db
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
   name: radarr-config
 spec:
   capacity:

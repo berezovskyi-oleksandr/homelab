@@ -126,6 +126,23 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
+  name: prowlarr-db
+  namespace: media
+  labels:
+    app: prowlarr-db
+spec:
+  type: ClusterIP
+  ports:
+    - name: 5432-5432
+      port: 5432
+      targetPort: 5432
+      protocol: TCP
+  selector:
+    app: prowlarr-db
+---
+apiVersion: v1
+kind: Service
+metadata:
   name: seerr-db
   namespace: media
   labels:

@@ -73,6 +73,33 @@ spec:
               volumeMounts:
                 - name: backup-tmp
                   mountPath: /backup
+            - name: pg-dump-prowlarr
+              image: postgres:14.21
+              env:
+                - name: PGHOST
+                  value: prowlarr-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: PROWLARR_DB_USER
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: PROWLARR_DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: media-db-credentials
+                      key: PROWLARR_DB_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/prowlarr.sql
+              volumeMounts:
+                - name: backup-tmp
+                  mountPath: /backup
             - name: pg-dump-seerr
               image: postgres:14.21
               env:
@@ -107,6 +134,8 @@ spec:
                 - sh
                 - -c
                 - |
+                  resticprofile -c /secrets/profiles.yaml -n prowlarr-db backup
+                  resticprofile -c /secrets/profiles.yaml -n prowlarr-db copy
                   resticprofile -c /secrets/profiles.yaml -n sonarr-db backup
                   resticprofile -c /secrets/profiles.yaml -n sonarr-db copy
                   resticprofile -c /secrets/profiles.yaml -n radarr-db backup

@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: prowlarr-db
+  namespace: media
+  labels:
+    app: prowlarr-db
+spec:
+  replicas: 1
+  serviceName: prowlarr-db
+  selector:
+    matchLabels:
+      app: prowlarr-db
+  template:
+    metadata:
+      labels:
+        app: prowlarr-db
+    spec:
+      securityContext:
+        runAsUser: 1027
+        runAsGroup: 100
+        fsGroup: 100
+      containers:
+        - name: postgres
+          image: postgres:14.21
+          env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: PROWLARR_DB_NAME
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: PROWLARR_DB_USER
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: media-db-credentials
+                  key: PROWLARR_DB_PASSWORD
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - containerPort: 5432
+              name: postgres
+              protocol: TCP
+          livenessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            failureThreshold: 5
+          readinessProbe:
+            tcpSocket:
+              port: 5432
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: prowlarr-db

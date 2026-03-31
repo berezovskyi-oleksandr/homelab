@@ -33,6 +33,27 @@ spec:
             matchLabels:
               kubernetes.io/metadata.name: traefik
 ---
+# prowlarr-db: only reachable from prowlarr and backup jobs
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: prowlarr-db
+  namespace: media
+spec:
+  podSelector:
+    matchLabels:
+      app: prowlarr-db
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app: prowlarr
+        - podSelector:
+            matchLabels:
+              app: media-backup
+---
 # sonarr-db: only reachable from sonarr and backup jobs
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
