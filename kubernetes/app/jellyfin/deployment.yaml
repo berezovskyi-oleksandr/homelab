@@ -43,7 +43,7 @@ spec:
               mountPath: /db-local
       containers:
         - name: jellyfin
-          image: jellyfin/jellyfin:10.11.6
+          image: jellyfin/jellyfin:10.11.7
           env:
             - name: JELLYFIN_PublishedServerUrl
               value: https://${JELLYFIN_HOST}
