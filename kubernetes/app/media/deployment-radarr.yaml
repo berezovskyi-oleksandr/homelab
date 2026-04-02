@@ -54,7 +54,7 @@ spec:
             - psql -d postgres -c 'CREATE DATABASE "radarr-log"' || true
       containers:
         - name: radarr
-          image: lscr.io/linuxserver/radarr:6.0.4
+          image: lscr.io/linuxserver/radarr:6.1.1
           envFrom:
             - configMapRef:
                 name: media-common-env
