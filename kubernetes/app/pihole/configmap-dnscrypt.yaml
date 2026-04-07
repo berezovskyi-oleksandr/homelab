@@ -8,8 +8,8 @@ data:
     listen_addresses = ['127.0.0.1:5353']
     max_clients = 250
     ipv4_servers = true
-    ipv6_servers = false
-    block_ipv6 = true
+    ipv6_servers = true
+    block_ipv6 = false
     dnscrypt_servers = true
     doh_servers = true
     require_dnssec = true
