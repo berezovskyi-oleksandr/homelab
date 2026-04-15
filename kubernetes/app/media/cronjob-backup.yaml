@@ -129,7 +129,7 @@ spec:
                   mountPath: /backup
           containers:
             - name: resticprofile
-              image: creativeprojects/resticprofile:0.32.0
+              image: creativeprojects/resticprofile:0.33.1
               command:
                 - sh
                 - -c
