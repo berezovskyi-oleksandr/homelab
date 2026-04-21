@@ -1,0 +1,75 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: firefly-iii
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: firefly-iii
+      version: 1.9.13
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: firefly-iii
+        namespace: flux-system
+  targetNamespace: firefly
+  interval: 1m0s
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    deploymentStrategyType: Recreate
+
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+
+    resources:
+      requests:
+        cpu: 50m
+        memory: 256Mi
+      limits:
+        memory: 512Mi
+
+    persistence:
+      enabled: true
+      storageClassName: nfs-synology-ssd
+      storage: 5Gi
+
+    config:
+      existingSecret: firefly-credentials
+      env:
+        DB_HOST: firefly-db
+        DB_CONNECTION: pgsql
+        DB_PORT: "5432"
+        DB_DATABASE: firefly
+        DB_USERNAME: firefly
+        TZ: Europe/Kyiv
+        TRUSTED_PROXIES: "10.244.0.0/24"
+        APP_URL: https://${FIREFLY_HOST}
+        AUTHENTICATION_GUARD: remote_user_guard
+        AUTHENTICATION_GUARD_HEADER: Remote-Email
+        AUTHENTICATION_GUARD_EMAIL: Remote-Email
+
+    cronjob:
+      enabled: true
+      auth:
+        existingSecret: firefly-credentials
+        secretKey: STATIC_CRON_TOKEN
+      schedule: "0 3 * * *"
+
+    ingress:
+      enabled: true
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+        traefik.ingress.kubernetes.io/router.middlewares: authelia-chain-authelia-authelia-auth@kubernetescrd
+      hosts:
+        - ${FIREFLY_HOST}
+      tls:
+        - secretName: firefly-tls
+          hosts:
+            - ${FIREFLY_HOST}

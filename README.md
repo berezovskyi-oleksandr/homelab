@@ -27,6 +27,7 @@ homelab-v2/
     ├── app/
     │   ├── archmirror/
     │   ├── external/       # External service vars (e.g. Home Assistant)
+    │   ├── firefly/
     │   ├── grocy/
     │   ├── homepage/
     │   ├── immich/
@@ -44,6 +45,7 @@ homelab-v2/
 
 | Service | Description |
 |---------|-------------|
+| **Firefly III** | Personal finance manager |
 | **Immich** | Photo and video management with face recognition |
 | **Jellyfin** | Media streaming with Intel GPU hardware transcoding |
 | **Media Stack** | Sonarr, Radarr, Prowlarr, qBittorrent — automated media acquisition |
