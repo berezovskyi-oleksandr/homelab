@@ -54,6 +54,10 @@ spec:
         AUTHENTICATION_GUARD: remote_user_guard
         AUTHENTICATION_GUARD_HEADER: Remote-Email
         AUTHENTICATION_GUARD_EMAIL: Remote-Email
+        MAIL_MAILER: smtp
+        MAIL_HOST: smtp.protonmail.ch
+        MAIL_PORT: "587"
+        MAIL_ENCRYPTION: tls
 
     cronjob:
       enabled: true
