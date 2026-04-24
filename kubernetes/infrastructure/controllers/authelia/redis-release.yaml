@@ -20,7 +20,9 @@ spec:
     architecture: standalone
     auth:
       enabled: false
+    commonConfiguration: |-
+      appendonly no
+      save ""
     master:
       persistence:
-        storageClass: nfs-synology-ssd
-        size: 256Mi
+        enabled: false
