@@ -1,0 +1,147 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: gitea
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: gitea
+      version: 12.5.3
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: gitea
+        namespace: flux-system
+  targetNamespace: gitea
+  interval: 1m0s
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    strategy:
+      type: Recreate
+
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+
+    image:
+      rootless: true
+      pullPolicy: IfNotPresent
+
+    postgresql-ha:
+      enabled: false
+    postgresql:
+      enabled: false
+    valkey-cluster:
+      enabled: false
+    valkey:
+      enabled: false
+
+    persistence:
+      enabled: true
+      create: true
+      claimName: gitea-data
+      size: 20Gi
+      storageClass: nfs-synology-ssd
+      accessModes:
+        - ReadWriteOnce
+
+    resources:
+      requests:
+        cpu: 100m
+        memory: 256Mi
+      limits:
+        memory: 1Gi
+
+    service:
+      http:
+        type: ClusterIP
+        port: 3000
+      ssh:
+        type: NodePort
+        port: 22
+        nodePort: 32022
+
+    ingress:
+      enabled: true
+      className: traefik
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - host: ${GITEA_HOST}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: gitea-tls
+          hosts:
+            - ${GITEA_HOST}
+
+    gitea:
+      admin:
+        existingSecret: gitea-admin
+        passwordMode: keepUpdated
+
+      oauth:
+        - name: authelia
+          provider: openidConnect
+          existingSecret: gitea-oauth-authelia
+          autoDiscoverUrl: https://auth.${AUTHELIA_DOMAIN}/.well-known/openid-configuration
+
+      config:
+        repository:
+          DEFAULT_BRANCH: master
+        server:
+          DOMAIN: ${GITEA_HOST}
+          ROOT_URL: https://${GITEA_HOST}/
+          SSH_DOMAIN: ${GITEA_HOST}
+          SSH_PORT: "22"
+          SSH_LISTEN_PORT: "2222"
+          LANDING_PAGE: login
+        service:
+          DISABLE_REGISTRATION: true
+          ALLOW_ONLY_EXTERNAL_REGISTRATION: true
+          SHOW_REGISTRATION_BUTTON: false
+          ENABLE_PASSWORD_SIGNIN_FORM: false
+          ENABLE_PASSKEY_AUTHENTICATION: false
+          REQUIRE_SIGNIN_VIEW: false
+
+        "service.explore":
+          DISABLE_USERS_PAGE: true
+          DISABLE_ORGANIZATIONS_PAGE: true
+        openid:
+          ENABLE_OPENID_SIGNIN: false
+          ENABLE_OPENID_SIGNUP: false
+        oauth2_client:
+          ENABLE_AUTO_REGISTRATION: true
+          USERNAME: preferred_username
+          OPENID_CONNECT_SCOPES: "email profile groups"
+          ACCOUNT_LINKING: auto
+          UPDATE_AVATAR: true
+          REGISTER_EMAIL_CONFIRM: false
+
+      additionalConfigFromEnvs:
+        - name: GITEA__database__DB_TYPE
+          value: postgres
+        - name: GITEA__database__HOST
+          value: gitea-db:5432
+        - name: GITEA__database__NAME
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: DB_DATABASE_NAME
+        - name: GITEA__database__USER
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: DB_USERNAME
+        - name: GITEA__database__PASSWD
+          valueFrom:
+            secretKeyRef:
+              name: gitea-credentials
+              key: DB_PASSWORD

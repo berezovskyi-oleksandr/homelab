@@ -28,6 +28,7 @@ homelab-v2/
     │   ├── archmirror/
     │   ├── external/       # External service vars (e.g. Home Assistant)
     │   ├── firefly/
+    │   ├── gitea/
     │   ├── grocy/
     │   ├── homepage/
     │   ├── immich/
@@ -45,6 +46,7 @@ homelab-v2/
 
 | Service | Description |
 |---------|-------------|
+| **Gitea** | Self-hosted Git service |
 | **Firefly III** | Personal finance manager |
 | **Immich** | Photo and video management with face recognition |
 | **Jellyfin** | Media streaming with Intel GPU hardware transcoding |

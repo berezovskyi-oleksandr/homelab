@@ -34,6 +34,7 @@ stringData:
     CRYPTPAD_CONFIG_NFS_PATH: ENC[AES256_GCM,data:VJ4h7ADenNgFIiNIFK7pJKMrUBYc4e9c4MdVzqGoR4TDWGYL,iv:8ZhMHiZLh2C4J/vh/8L96R6VIkKoWc7ib/bUAQ5rZE0=,tag:HgvJjjYybCgxatUbcRFY7Q==,type:str]
     SEERR_HOST: ENC[AES256_GCM,data:l64ttp+rLNU8GfwIE4fhJROSMDEb,iv:1vHOw0LyGN9OMhYemhtRq9GE2fc4J2EprZU3bp/h4kk=,tag:WNV0Jh7816ra7IIOBMspBg==,type:str]
     FIREFLY_HOST: ENC[AES256_GCM,data:EQdrW33PVlD/brZCqh/sTkqLdPWW/bo=,iv:zbNnjsT1J6lpCEWtvNyL4A3bjWsusCjI5goWcZ8hajk=,tag:VwA6YA056bsyYIKB+X59bw==,type:str]
+    GITEA_HOST: ENC[AES256_GCM,data:Ky3tXS9E9iadabpVzoK5zEbigmtn,iv:t6OdQeQ7Kxzb7qbi+KeoOkJd0XE2Dse5P1fFyiHM6tg=,tag:GpmHtVDr0IQVbpbALVx40g==,type:str]
     BACKUP_LOCAL_HOST: ENC[AES256_GCM,data:ABaTI3NKkhF7K2FpPwvvrHA0l/tCxAi4Qek=,iv:34ixxSpKU1c12uoMdk4nz2Vo/+5A/npB7NWMsWFytIM=,tag:qjw2fQBebCKnqCnAPiBHaw==,type:str]
 sops:
     age:
@@ -46,7 +47,7 @@ sops:
             MGJ6TFpwR0diNjlEN2syZkhNMFNwRDQK9pzmQGB0GQu6ogMIJW+kugvBNj3w+dxW
             bfEF9GAznIM/N5rPytF4wNgqwfoAF7GwumgA+iD43wprKtUJn+6dqw==
             -----END AGE ENCRYPTED FILE-----
-    lastmodified: "2026-04-21T20:29:36Z"
-    mac: ENC[AES256_GCM,data:kiPibnbuR2b2nsniS7Y/2W7gH/z6M7Ay1Nx4D7A/qcP55udjHc3C+TWRnIoy/UYWV6G2g9YfHmywyhZI9x8xMG9NoQUZ14OYeFmjDGT48GV0NvZRIVcfIjzJRyzMI+pL8Fekn9HHSiYKBhjYLS0v/q/M3/ilA53tj3/90Gfinzk=,iv:AsJAmfBERd4BqQ4kn57UbFkFX4GAp+pZWt7WwteKKbw=,tag:RVD9mCEHxyhwh8VijAQmVQ==,type:str]
+    lastmodified: "2026-04-29T19:47:22Z"
+    mac: ENC[AES256_GCM,data:WgVeGY1tGl3Y97FRGNVEkM2J4WKeHil6ki2Jsww1QOsAdGyL7QaL0vPpfRfDc8FRHhyeahS7ShacUvBKnL5Lihxnrqhkd8wA0BgxONk0k/W8/WtU/tvhXpTwxTWgQ5VyPtX3QwwkAcGTARBu+Xrp2y9QGXU8NPO56eH6cUGPEW4=,iv:KjZbbRfhy4ZHtv38MHlX8jxK+9pp/U2aGaX+d8HRK3E=,tag:wcdQVdpYR9czzeYMi554oQ==,type:str]
     encrypted_regex: ^(data|stringData|email)$
     version: 3.12.2
