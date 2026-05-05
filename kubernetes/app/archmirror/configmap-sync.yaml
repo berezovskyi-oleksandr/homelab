@@ -26,7 +26,7 @@ data:
         log "Sync attempt $i/$MAX_RETRIES from $MIRROR_URL"
 
         if rsync --timeout=600 \
-                 -rlptH --safe-links --delete-delay --delay-updates \
+                 -rltH --no-perms --chmod=D755,F664 --safe-links --delete-delay --delay-updates \
                  -v --info=progress2 \
                  "$MIRROR_URL/" "$TARGET_DIR/"; then
             log "Sync completed successfully"
