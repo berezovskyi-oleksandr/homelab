@@ -22,13 +22,26 @@ data:
     fi
 
     mkdir -p "$TARGET_DIR"
+
+    do_rsync() {
+        rsync --timeout=600 \
+              -rltH --no-perms --chmod=D755,F664 --safe-links --delete-delay --delay-updates \
+              -v --info=progress2 \
+              "$@"
+    }
+
     for i in $(seq 1 $MAX_RETRIES); do
         log "Sync attempt $i/$MAX_RETRIES from $MIRROR_URL"
 
-        if rsync --timeout=600 \
-                 -rltH --no-perms --chmod=D755,F664 --safe-links --delete-delay --delay-updates \
-                 -v --info=progress2 \
-                 "$MIRROR_URL/" "$TARGET_DIR/"; then
+        # Pass 1: sync packages, skip db/files indices so they are never updated
+        # before their referenced package files arrive (avoids 404s).
+        # Pass 2: sync everything including indices now that packages are present.
+        if do_rsync \
+                --exclude='*.db' --exclude='*.db.*' \
+                --exclude='*.files' --exclude='*.files.*' \
+                "$MIRROR_URL/" "$TARGET_DIR/" \
+            && do_rsync \
+                "$MIRROR_URL/" "$TARGET_DIR/"; then
             log "Sync completed successfully"
             exit 0
         fi
