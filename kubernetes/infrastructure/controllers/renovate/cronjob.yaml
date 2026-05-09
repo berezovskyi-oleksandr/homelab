@@ -23,14 +23,21 @@ spec:
               image: renovate/renovate:39
               env:
                 - name: RENOVATE_PLATFORM
-                  value: github
+                  value: gitea
+                - name: RENOVATE_ENDPOINT
+                  value: https://gitea.berezovskyi.dev/api/v1
                 - name: RENOVATE_REPOSITORIES
-                  value: '["berezovskyi-oleksandr/homelab"]'
+                  value: '["oleksandr/homelab"]'
                 - name: RENOVATE_TOKEN
                   valueFrom:
                     secretKeyRef:
                       name: renovate
-                      key: github-token
+                      key: gitea-token
+                - name: RENOVATE_GITHUB_COM_TOKEN
+                  valueFrom:
+                    secretKeyRef:
+                      name: renovate
+                      key: github-com-token
                 - name: LOG_LEVEL
                   value: info
               resources:
