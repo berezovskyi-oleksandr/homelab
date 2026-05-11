@@ -79,6 +79,26 @@ spec:
       ports:
         - port: 5432
 ---
+# Allow act_runner pods to reach gitea-http (HelmRelease for Actions registers and polls jobs via cluster-internal Service)
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-runner-to-gitea
+  namespace: gitea
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: gitea
+  policyTypes:
+    - Ingress
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              app.kubernetes.io/name: actions-act-runner
+      ports:
+        - port: 3000
+---
 apiVersion: networking.k8s.io/v1
 kind: NetworkPolicy
 metadata:

@@ -51,6 +51,14 @@ spec:
       accessModes:
         - ReadWriteOnce
 
+    extraVolumes:
+      - name: gitea-extra
+        persistentVolumeClaim:
+          claimName: gitea-extra
+    extraContainerVolumeMounts:
+      - name: gitea-extra
+        mountPath: /data/extra
+
     resources:
       requests:
         cpu: 100m
@@ -124,6 +132,21 @@ spec:
           ACCOUNT_LINKING: auto
           UPDATE_AVATAR: true
           REGISTER_EMAIL_CONFIRM: false
+
+        actions:
+          ENABLED: true
+          DEFAULT_ACTIONS_URL: github
+          LOG_RETENTION_DAYS: 7
+          ARTIFACT_RETENTION_DAYS: 7
+          LOG_COMPRESSION: zstd
+
+        "storage.packages":
+          PATH: /data/extra/packages
+        "storage.actions_log":
+          PATH: /data/extra/actions_log
+        "storage.actions_artifacts":
+          STORAGE_TYPE: local
+          PATH: /data/extra/actions_artifacts
 
       additionalConfigFromEnvs:
         - name: GITEA__database__DB_TYPE

@@ -148,3 +148,65 @@ spec:
             - name: data
               persistentVolumeClaim:
                 claimName: gitea-data
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: gitea-extra-backup
+  namespace: gitea
+  labels:
+    app: gitea-backup
+spec:
+  schedule: "15 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: gitea-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n gitea-extra backup
+                  resticprofile -c /secrets/profiles.yaml -n gitea-extra copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: gitea-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: gitea-backup-config
+                      key: B2_ACCOUNT_KEY
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: extra
+                  mountPath: /data-extra
+                  readOnly: true
+          volumes:
+            - name: secrets
+              secret:
+                secretName: gitea-backup-config
+            - name: extra
+              persistentVolumeClaim:
+                claimName: gitea-extra
