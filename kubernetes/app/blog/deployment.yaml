@@ -1,0 +1,149 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: blog
+  namespace: blog
+  labels:
+    app: blog
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: blog
+  template:
+    metadata:
+      labels:
+        app: blog
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        seccompProfile:
+          type: RuntimeDefault
+        # git-sync (uid 65533) writes files; fsGroup makes the emptyDir group-writable by that uid
+        fsGroup: 65533
+      initContainers:
+        - name: git-sync-init
+          image: registry.k8s.io/git-sync/git-sync:v4.5.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GITSYNC_REPO
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_REPO
+            - name: GITSYNC_ROOT
+              value: "/git"
+            - name: GITSYNC_REF
+              value: "gh-pages"
+            - name: GITSYNC_LINK
+              value: "current"
+            - name: GITSYNC_DEPTH
+              value: "1"
+            - name: GITSYNC_ONE_TIME
+              value: "true"
+            - name: GITSYNC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_USERNAME
+            - name: GITSYNC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_PASSWORD
+          securityContext:
+            runAsUser: 65533
+            runAsGroup: 65533
+          volumeMounts:
+            - name: git-content
+              mountPath: /git
+          resources:
+            requests:
+              cpu: 10m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+      containers:
+        - name: nginx
+          image: nginxinc/nginx-unprivileged:1.30.0-alpine3.23
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          securityContext:
+            runAsUser: 101
+            runAsGroup: 101
+          volumeMounts:
+            - name: git-content
+              mountPath: /git
+            - name: nginx-config
+              mountPath: /etc/nginx/conf.d/default.conf
+              subPath: default.conf
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /health
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 10m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+        - name: git-sync
+          image: registry.k8s.io/git-sync/git-sync:v4.5.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: GITSYNC_REPO
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_REPO
+            - name: GITSYNC_ROOT
+              value: "/git"
+            - name: GITSYNC_REF
+              value: "gh-pages"
+            - name: GITSYNC_LINK
+              value: "current"
+            - name: GITSYNC_DEPTH
+              value: "1"
+            - name: GITSYNC_PERIOD
+              value: "30s"
+            - name: GITSYNC_USERNAME
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_USERNAME
+            - name: GITSYNC_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: blog-git-credentials
+                  key: GITSYNC_PASSWORD
+          securityContext:
+            runAsUser: 65533
+            runAsGroup: 65533
+          volumeMounts:
+            - name: git-content
+              mountPath: /git
+          resources:
+            requests:
+              cpu: 5m
+              memory: 32Mi
+            limits:
+              memory: 64Mi
+      volumes:
+        - name: git-content
+          emptyDir: {}
+        - name: nginx-config
+          configMap:
+            name: blog-nginx-config

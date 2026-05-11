@@ -26,6 +26,7 @@ homelab-v2/
     │   └── configs/        # ClusterIssuer, MetalLB config
     ├── app/
     │   ├── archmirror/
+    │   ├── blog/
     │   ├── external/       # External service vars (e.g. Home Assistant)
     │   ├── firefly/
     │   ├── gitea/
@@ -58,6 +59,7 @@ homelab-v2/
 | **Homepage** | Dashboard aggregator |
 | **Podsync** | Podcast downloader |
 | **Archmirror** | Local Arch Linux package repository mirror |
+| **Blog** | Personal static blog served via git-sync + nginx (gh-pages branch) |
 
 ## Infrastructure Stack
 
