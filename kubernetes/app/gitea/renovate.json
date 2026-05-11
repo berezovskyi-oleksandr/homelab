@@ -1,0 +1,33 @@
+{
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track gitea rootless image; chart appends -rootless to tag automatically",
+      "fileMatch": ["kubernetes/app/gitea/release\\.yaml$"],
+      "matchStrings": [
+        "(?<indentation>\\s+)# renovate: currentValue=(?<currentValue>[^\\s]+) currentDigest=(?<currentDigest>sha256:[a-f0-9]+)\\n\\s+tag: [^\\s]+\\n\\s+digest: [^\\s]+"
+      ],
+      "depNameTemplate": "gitea/gitea",
+      "datasourceTemplate": "docker",
+      "autoReplaceStringTemplate": "{{indentation}}# renovate: currentValue={{newValue}} currentDigest={{#if newDigest}}{{{newDigest}}}{{else}}{{{currentDigest}}}{{/if}}\n{{indentation}}tag: {{newMajor}}.{{newMinor}}.{{newPatch}}\n{{indentation}}digest: {{#if newDigest}}{{{newDigest}}}{{else}}{{{currentDigest}}}{{/if}}"
+    }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/gitea/**"],
+      "semanticCommitScope": "k8s/gitea"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/gitea/**"],
+      "matchPackageNames": ["gitea/gitea"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/gitea/**"],
+      "matchPackageNames": ["creativeprojects/resticprofile", "postgres"],
+      "enabled": false
+    }
+  ]
+}
