@@ -10,6 +10,7 @@ data:
         server_name _;
         root /git/current;
         index index.html;
+        absolute_redirect off;
 
         location /health {
             access_log off;
