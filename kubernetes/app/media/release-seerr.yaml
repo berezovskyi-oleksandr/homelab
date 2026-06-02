@@ -18,7 +18,7 @@ spec:
   targetNamespace: media
   values:
     image:
-      tag: v3.2.0
+      tag: v3.3.0
     podLabels:
       app: seerr
     extraEnv:
