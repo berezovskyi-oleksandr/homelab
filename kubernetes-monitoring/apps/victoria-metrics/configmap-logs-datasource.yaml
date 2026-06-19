@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: victoria-logs-grafana-datasource
+  namespace: monitoring
+  labels:
+    # Picked up automatically by the Grafana datasource sidecar (vmstack chart).
+    grafana_datasource: "1"
+data:
+  victoria-logs-datasource.yaml: |
+    apiVersion: 1
+    datasources:
+      - name: VictoriaLogs
+        type: victoriametrics-logs-datasource
+        access: proxy
+        url: http://victoria-logs.monitoring.svc:9428
+        isDefault: false

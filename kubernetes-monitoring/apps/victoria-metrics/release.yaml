@@ -66,6 +66,11 @@ spec:
 
     grafana:
       enabled: true
+      # VictoriaLogs datasource plugin (signed, from Grafana catalog).
+      # The datasource itself is provisioned via a sidecar-labelled ConfigMap
+      # (configmap-logs-datasource.yaml).
+      plugins:
+        - victoriametrics-logs-datasource
       # Native Grafana login — independent of Authelia (which lives in Talos).
       admin:
         existingSecret: grafana-admin

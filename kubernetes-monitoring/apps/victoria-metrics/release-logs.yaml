@@ -1,0 +1,43 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-logs-single
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: victoria-logs-single
+      version: 0.13.8
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: victoria-metrics
+        namespace: flux-system
+  targetNamespace: monitoring
+  interval: 30m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    server:
+      fullnameOverride: victoria-logs
+      retentionPeriod: "30d"
+      persistentVolume:
+        enabled: true
+        storageClassName: local-path
+        size: 20Gi
+      # NodePort so an external Alloy (e.g. the Talos DaemonSet) can push logs
+      # by IP, independent of DNS. In-cluster Grafana uses the ClusterIP DNS name.
+      service:
+        type: NodePort
+        nodePort: 30429
+        clusterIP: ""
+      resources:
+        requests:
+          cpu: 50m
+          memory: 128Mi
+        limits:
+          memory: 512Mi
