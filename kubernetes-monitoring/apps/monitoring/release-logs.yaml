@@ -41,3 +41,11 @@ spec:
           memory: 128Mi
         limits:
           memory: 512Mi
+
+    # Ship the chart's dashboards (victorialogs-single-node, vector-k8s-monitoring)
+    # as ConfigMaps; the grafana_dashboard label makes the vmstack Grafana
+    # dashboard sidecar import them automatically.
+    dashboards:
+      enabled: true
+      labels:
+        grafana_dashboard: "1"
