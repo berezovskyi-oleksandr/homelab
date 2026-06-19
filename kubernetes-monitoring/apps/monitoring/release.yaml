@@ -74,10 +74,12 @@ spec:
       # render dirs, so it's both redundant and breaks rollouts here.
       initChownData:
         enabled: false
-      # VictoriaLogs datasource plugin (signed, from Grafana catalog).
-      # The datasource itself is provisioned via a sidecar-labelled ConfigMap
-      # (configmap-logs-datasource.yaml).
+      # Native VictoriaMetrics datasource plugins (signed, from Grafana catalog).
+      # - metrics: backs the "VictoriaMetrics (DS)" datasource the chart
+      #   provisions by default (defaultDatasources.victoriametrics) — MetricsQL.
+      # - logs: backs our VictoriaLogs datasource (configmap-logs-datasource.yaml).
       plugins:
+        - victoriametrics-metrics-datasource
         - victoriametrics-logs-datasource
       # Native Grafana login — independent of Authelia (which lives in Talos).
       admin:
