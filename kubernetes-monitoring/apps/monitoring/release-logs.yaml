@@ -35,6 +35,12 @@ spec:
         type: NodePort
         nodePort: 30429
         clusterIP: ""
+      syslog:
+        udp:
+          - name: syslog-udp
+            value: ":514"
+            useRemoteIP: true
+            useLocalTimestamp: true
       resources:
         requests:
           cpu: 50m
