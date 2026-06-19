@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: unpoller
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: unpoller
+    app.kubernetes.io/instance: unpoller
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unpoller
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: unpoller
+        app.kubernetes.io/instance: unpoller
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: unpoller
+          image: ghcr.io/unpoller/unpoller:v3.3.1
+          ports:
+            - name: metrics
+              containerPort: 9130
+              protocol: TCP
+          env:
+            # Outputs: Prometheus exporter on, InfluxDB off.
+            - name: UP_INFLUXDB_DISABLE
+              value: "true"
+            - name: UP_PROMETHEUS_DISABLE
+              value: "false"
+            - name: UP_PROMETHEUS_HTTP_LISTEN
+              value: "0.0.0.0:9130"
+            # UniFi OS controller: self-signed cert, poll all sites.
+            - name: UP_UNIFI_DEFAULT_VERIFY_SSL
+              value: "false"
+            - name: UP_UNIFI_DEFAULT_SITE_0
+              value: "all"
+            - name: UP_UNIFI_DEFAULT_SAVE_SITES
+              value: "true"
+            - name: UP_POLLER_DEBUG
+              value: "false"
+          # UP_UNIFI_DEFAULT_URL / _USER / _PASS come from the secret.
+          envFrom:
+            - secretRef:
+                name: unpoller-unifi
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 256Mi

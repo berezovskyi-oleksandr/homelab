@@ -1,0 +1,18 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMServiceScrape
+metadata:
+  name: unpoller
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: unpoller
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: unpoller
+  endpoints:
+    # unpoller caches controller data and refreshes it every 60s, so a tighter
+    # scrape interval just re-serves the same cache.
+    - port: metrics
+      path: /metrics
+      interval: 60s
+      scrapeTimeout: 30s
