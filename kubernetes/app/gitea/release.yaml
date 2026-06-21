@@ -199,11 +199,11 @@ spec:
         type: RuntimeDefault
 
     image:
-      # renovate: currentValue=1.26.3-rootless currentDigest=sha256:4d1d79638bef7a4a82e3a269b95fae1bbb9bcba1258dd84fba7ba3a3a49581e3
+      # renovate: currentValue=1.26.4-rootless currentDigest=sha256:cd1d2614b403fc9b085fa52ceb4424dde9c4dcf5da8e3263abb27955562070c4
 
-      tag: 1.26.3
+      tag: 1.26.4
 
-      digest: sha256:4d1d79638bef7a4a82e3a269b95fae1bbb9bcba1258dd84fba7ba3a3a49581e3
+      digest: sha256:cd1d2614b403fc9b085fa52ceb4424dde9c4dcf5da8e3263abb27955562070c4
       rootless: true
       pullPolicy: IfNotPresent
 
