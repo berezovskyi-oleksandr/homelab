@@ -1,0 +1,19 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMStaticScrape
+metadata:
+  name: coreelec
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: coreelec
+spec:
+  jobName: coreelec
+  targetEndpoints:
+    - targets:
+        - "coreelec.iot.lviv:9100"
+      scheme: http
+      path: /metrics
+      interval: 60s
+      scrapeTimeout: 10s
+      relabelConfigs:
+        - targetLabel: instance
+          replacement: coreelec
