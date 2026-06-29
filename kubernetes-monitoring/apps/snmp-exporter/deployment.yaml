@@ -1,0 +1,69 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: snmp-exporter
+  namespace: monitoring
+  labels:
+    app.kubernetes.io/name: snmp-exporter
+    app.kubernetes.io/instance: snmp-exporter
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: snmp-exporter
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: snmp-exporter
+        app.kubernetes.io/instance: snmp-exporter
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 65534
+        runAsGroup: 65534
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: snmp-exporter
+          image: quay.io/prometheus/snmp-exporter:v0.30.1
+          args:
+            # Stock config baked into the image — it already ships the `synology` module.
+            - "--config.file=/etc/snmp_exporter/snmp.yml"
+            # Our SNMPv3 credentials; snmp_exporter merges multiple --config.file flags.
+            - "--config.file=/etc/snmp/auth.yml"
+          ports:
+            - name: metrics
+              containerPort: 9116
+              protocol: TCP
+          volumeMounts:
+            - name: auth
+              mountPath: /etc/snmp
+              readOnly: true
+          readinessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 5
+            periodSeconds: 15
+          livenessProbe:
+            httpGet:
+              path: /
+              port: metrics
+            initialDelaySeconds: 15
+            periodSeconds: 30
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop:
+                - ALL
+          resources:
+            requests:
+              cpu: 50m
+              memory: 64Mi
+            limits:
+              memory: 128Mi
+      volumes:
+        - name: auth
+          secret:
+            secretName: snmp-exporter-auth
