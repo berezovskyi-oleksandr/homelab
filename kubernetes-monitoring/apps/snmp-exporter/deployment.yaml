@@ -27,17 +27,21 @@ spec:
         - name: snmp-exporter
           image: quay.io/prometheus/snmp-exporter:v0.30.1
           args:
-            # Stock config baked into the image — it already ships the `synology` module.
-            - "--config.file=/etc/snmp_exporter/snmp.yml"
+            # Vendored snmp.yml (configmap) — `synology` module with full coverage
+            # (Synology private trees + IF-MIB + HOST-RESOURCES + UCD), matched to the dashboard.
+            - "--config.file=/etc/snmp-config/snmp.yml"
             # Our SNMPv3 credentials; snmp_exporter merges multiple --config.file flags.
-            - "--config.file=/etc/snmp/auth.yml"
+            - "--config.file=/etc/snmp-auth/auth.yml"
           ports:
             - name: metrics
               containerPort: 9116
               protocol: TCP
           volumeMounts:
+            - name: config
+              mountPath: /etc/snmp-config
+              readOnly: true
             - name: auth
-              mountPath: /etc/snmp
+              mountPath: /etc/snmp-auth
               readOnly: true
           readinessProbe:
             httpGet:
@@ -64,6 +68,9 @@ spec:
             limits:
               memory: 128Mi
       volumes:
+        - name: config
+          configMap:
+            name: snmp-exporter-config
         - name: auth
           secret:
             secretName: snmp-exporter-auth
