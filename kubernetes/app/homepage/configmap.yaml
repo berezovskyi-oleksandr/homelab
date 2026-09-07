@@ -90,6 +90,10 @@ data:
             icon: grocy.png
             href: https://${GROCY_HOST}/
             description: Chores and inventory tracker
+        - Vikunja:
+            icon: vikunja.png
+            href: https://${VIKUNJA_HOST}/
+            description: Task management
 
   widgets.yaml: |
     ---

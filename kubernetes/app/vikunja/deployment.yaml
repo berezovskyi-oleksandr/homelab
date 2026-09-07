@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vikunja
+  namespace: vikunja
+  labels:
+    app: vikunja
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: vikunja
+  template:
+    metadata:
+      labels:
+        app: vikunja
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        # No fsGroup — the NFS subdir provisioner creates directories 0777, and an
+        # fsGroup chown over NFS is slow and can fail against Synology's root squash.
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: vikunja
+          image: vikunja/vikunja:2.6.0
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 3456
+              name: http
+              protocol: TCP
+          env:
+            - name: VIKUNJA_SERVICE_PUBLICURL
+              value: https://${VIKUNJA_HOST}/
+            - name: VIKUNJA_SERVICE_TIMEZONE
+              value: Europe/Kyiv
+            - name: VIKUNJA_SERVICE_ENABLEREGISTRATION
+              value: "false"
+            - name: VIKUNJA_SERVICE_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-credentials
+                  key: SERVICE_SECRET
+            - name: VIKUNJA_DATABASE_TYPE
+              value: postgres
+            - name: VIKUNJA_DATABASE_HOST
+              value: vikunja-db
+            - name: VIKUNJA_DATABASE_SSLMODE
+              value: disable
+            - name: VIKUNJA_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-credentials
+                  key: DB_USERNAME
+            - name: VIKUNJA_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-credentials
+                  key: DB_PASSWORD
+            - name: VIKUNJA_DATABASE_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-credentials
+                  key: DB_DATABASE_NAME
+            - name: VIKUNJA_FILES_BASEPATH
+              value: /app/vikunja/files
+            # Authentication is delegated to Authelia over OIDC — local accounts are off,
+            # so the login page redirects straight to Authelia (single provider).
+            - name: VIKUNJA_AUTH_LOCAL_ENABLED
+              value: "false"
+            - name: VIKUNJA_AUTH_OPENID_ENABLED
+              value: "true"
+            - name: VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_NAME
+              value: Authelia
+            - name: VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_AUTHURL
+              value: https://auth.${AUTHELIA_DOMAIN}
+            - name: VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_CLIENTID
+              value: vikunja
+            - name: VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_SCOPE
+              value: openid profile email
+            - name: VIKUNJA_AUTH_OPENID_PROVIDERS_AUTHELIA_CLIENTSECRET
+              valueFrom:
+                secretKeyRef:
+                  name: vikunja-credentials
+                  key: OIDC_CLIENT_SECRET
+          volumeMounts:
+            - name: files
+              mountPath: /app/vikunja/files
+          livenessProbe:
+            httpGet:
+              port: 3456
+              path: /health
+            initialDelaySeconds: 30
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 3456
+              path: /health
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+      volumes:
+        - name: files
+          persistentVolumeClaim:
+            claimName: vikunja-files

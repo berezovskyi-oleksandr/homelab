@@ -1,0 +1,25 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vikunja
+  namespace: vikunja
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # No Authelia forward-auth middleware — Vikunja authenticates against Authelia
+    # natively over OIDC. A middleware here would break the OIDC callback and the API.
+spec:
+  tls:
+    - hosts:
+        - ${VIKUNJA_HOST}
+      secretName: vikunja-tls
+  rules:
+    - host: ${VIKUNJA_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: vikunja
+                port:
+                  number: 3456

@@ -38,7 +38,8 @@ homelab-v2/
     │   ├── media/
     │   ├── paperless/
     │   ├── pihole/
-    │   └── podsync/
+    │   ├── podsync/
+    │   └── vikunja/
     └── docs/
         └── k8s-service-spec.md
 ```
@@ -60,6 +61,7 @@ homelab-v2/
 | **Podsync** | Podcast downloader |
 | **Archmirror** | Local Arch Linux package repository mirror |
 | **Blog** | Personal static blog served via git-sync + nginx (gh-pages branch) |
+| **Vikunja** | To-do list and task management, SSO via Authelia OIDC |
 
 ## Infrastructure Stack
 
