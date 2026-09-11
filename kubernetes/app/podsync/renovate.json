@@ -1,0 +1,23 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/podsync/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/podsync/**"],
+      "semanticCommitScope": "k8s/podsync"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/podsync/**"],
+      "matchPackageNames": ["ghcr.io/mxpv/podsync"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/podsync/**"],
+      "matchPackageNames": ["ghcr.io/mxpv/podsync"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}
