@@ -33,8 +33,12 @@ spec:
             - secretRef:
                 name: homepage-credentials
           env:
+            - name: MY_POD_IP
+              valueFrom:
+                fieldRef:
+                  fieldPath: status.podIP
             - name: HOMEPAGE_ALLOWED_HOSTS
-              value: "${HOMEPAGE_HOST}"
+              value: "$(MY_POD_IP):3000,${HOMEPAGE_HOST}"
           volumeMounts:
             - name: config
               mountPath: /app/config/settings.yaml
@@ -51,23 +55,16 @@ spec:
             - name: config
               mountPath: /app/config/kubernetes.yaml
               subPath: kubernetes.yaml
-          # v2 validates the Host header on every route; kubelet sends the pod IP, so pin an always-allowed host
           livenessProbe:
             httpGet:
               port: 3000
               path: /api/healthcheck
-              httpHeaders:
-                - name: Host
-                  value: localhost:3000
             initialDelaySeconds: 30
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 3000
               path: /api/healthcheck
-              httpHeaders:
-                - name: Host
-                  value: localhost:3000
             initialDelaySeconds: 10
             periodSeconds: 10
           resources:
