@@ -1,0 +1,23 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/homepage/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/homepage/**"],
+      "semanticCommitScope": "k8s/homepage"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/homepage/**"],
+      "matchPackageNames": ["ghcr.io/gethomepage/homepage"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/homepage/**"],
+      "matchPackageNames": ["ghcr.io/gethomepage/homepage"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    }
+  ]
+}
