@@ -1,0 +1,29 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/vikunja/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/vikunja/**"],
+      "semanticCommitScope": "k8s/vikunja"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/vikunja/**"],
+      "matchPackageNames": ["vikunja/vikunja"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/vikunja/**"],
+      "matchPackageNames": ["vikunja/vikunja"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/vikunja/**"],
+      "matchPackageNames": ["postgres", "creativeprojects/resticprofile"],
+      "enabled": false
+    }
+  ]
+}
