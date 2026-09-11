@@ -1,0 +1,38 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/lubelogger/.+\\.yaml$"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["kubernetes/app/lubelogger/release\\.yaml$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*tag:\\s*[\"']?(?<currentValue>[^\\s\"']+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/lubelogger/**"],
+      "semanticCommitScope": "k8s/lubelogger"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/lubelogger/**"],
+      "matchPackageNames": ["ghcr.io/hargata/lubelogger"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/lubelogger/**"],
+      "matchPackageNames": ["ghcr.io/hargata/lubelogger"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/lubelogger/**"],
+      "matchPackageNames": ["postgres", "creativeprojects/resticprofile"],
+      "enabled": false
+    }
+  ]
+}

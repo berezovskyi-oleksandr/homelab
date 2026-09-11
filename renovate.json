@@ -9,7 +9,8 @@
     "local>oleksandr/homelab//kubernetes/app/gitea/renovate.json",
     "local>oleksandr/homelab//kubernetes/app/homepage/renovate.json",
     "local>oleksandr/homelab//kubernetes/app/vikunja/renovate.json",
-    "local>oleksandr/homelab//kubernetes/app/paperless/renovate.json"
+    "local>oleksandr/homelab//kubernetes/app/paperless/renovate.json",
+    "local>oleksandr/homelab//kubernetes/app/lubelogger/renovate.json"
   ],
   "enabledManagers": ["kubernetes", "custom.regex"],
   "automergeType": "branch",
