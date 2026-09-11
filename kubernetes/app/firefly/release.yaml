@@ -24,6 +24,10 @@ spec:
   values:
     deploymentStrategyType: Recreate
 
+    image:
+      # renovate: datasource=docker depName=fireflyiii/core
+      tag: version-6.5.9
+
     podSecurityContext:
       seccompProfile:
         type: RuntimeDefault
