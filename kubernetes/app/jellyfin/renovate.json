@@ -10,6 +10,11 @@
     {
       "matchFileNames": ["kubernetes/app/jellyfin/**"],
       "matchPackageNames": ["jellyfin/jellyfin"],
+      "versioning": "regex:^(?<minor>\\d+)\\.(?<patch>\\d+)$"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/jellyfin/**"],
+      "matchPackageNames": ["jellyfin/jellyfin"],
       "matchUpdateTypes": ["patch"],
       "automerge": true
     },
