@@ -51,16 +51,23 @@ spec:
             - name: config
               mountPath: /app/config/kubernetes.yaml
               subPath: kubernetes.yaml
+          # v2 validates the Host header on every route; kubelet sends the pod IP, so pin an always-allowed host
           livenessProbe:
             httpGet:
               port: 3000
-              path: /
+              path: /api/healthcheck
+              httpHeaders:
+                - name: Host
+                  value: localhost:3000
             initialDelaySeconds: 30
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 3000
-              path: /
+              path: /api/healthcheck
+              httpHeaders:
+                - name: Host
+                  value: localhost:3000
             initialDelaySeconds: 10
             periodSeconds: 10
           resources:
