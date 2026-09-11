@@ -1,0 +1,37 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/paperless/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/paperless/**"],
+      "semanticCommitScope": "k8s/paperless"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/paperless/**"],
+      "matchPackageNames": [
+        "ghcr.io/paperless-ngx/paperless-ngx",
+        "apache/tika",
+        "gotenberg/gotenberg"
+      ],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/paperless/**"],
+      "matchPackageNames": [
+        "ghcr.io/paperless-ngx/paperless-ngx",
+        "apache/tika",
+        "gotenberg/gotenberg"
+      ],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/paperless/**"],
+      "matchPackageNames": ["postgres", "redis", "creativeprojects/resticprofile"],
+      "enabled": false
+    }
+  ]
+}
