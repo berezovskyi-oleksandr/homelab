@@ -1,0 +1,163 @@
+# Jellyfin SQLite database backup.
+# jellyfin.db lives on the local-path PVC (/config/data/jellyfin.db is a symlink
+# to it), so it is read from jellyfin-data directly. sqlite3 ".backup" uses the
+# online backup API — no downtime, consistent snapshot while Jellyfin runs.
+# The volume is mounted read-write on purpose: jellyfin.db is in WAL mode, and
+# SQLite cannot open a WAL database from a read-only filesystem once Jellyfin has
+# closed it and removed the -wal/-shm files (e.g. while scaled to zero).
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jellyfin-db-backup
+  namespace: jellyfin
+  labels:
+    app: jellyfin-backup
+spec:
+  schedule: "30 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: jellyfin-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: sqlite-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  apk add --no-cache sqlite
+                  sqlite3 /db-local/jellyfin.db ".backup /backup/jellyfin.db"
+              volumeMounts:
+                - name: db
+                  mountPath: /db-local
+                - name: backup-tmp
+                  mountPath: /backup
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n jellyfin-db backup
+                  resticprofile -c /secrets/profiles.yaml -n jellyfin-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          volumes:
+            - name: secrets
+              secret:
+                secretName: jellyfin-backup-config
+            - name: db
+              persistentVolumeClaim:
+                claimName: jellyfin-data
+            - name: backup-tmp
+              emptyDir: {}
+---
+# Jellyfin configuration backup.
+# Only non-regenerable state: server config, library definitions, plugin
+# configuration (including the Authelia SSO settings), collections, and the
+# Intro Skipper analysis results. Metadata (27G), trickplay (20G) and extracted
+# subtitles (1.7G) are deliberately excluded — they are regenerable from the
+# media files and the metadata providers.
+# Intro Skipper keeps its results in two live WAL-mode SQLite databases, so they
+# are snapshotted with sqlite3 ".backup" rather than copied as files (which could
+# capture a torn page mid-write). Read-write mount for the same reason as above.
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: jellyfin-config-backup
+  namespace: jellyfin
+  labels:
+    app: jellyfin-backup
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: jellyfin-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: sqlite-backup
+              image: alpine:3.21
+              command:
+                - sh
+                - -c
+                - |
+                  set -e
+                  apk add --no-cache sqlite
+                  mkdir -p /backup/introskipper
+                  for db in introskipper.db introskipper-cache.db; do
+                    sqlite3 "/config/data/introskipper/$db" ".backup /backup/introskipper/$db"
+                  done
+              volumeMounts:
+                - name: config
+                  mountPath: /config
+                - name: backup-tmp
+                  mountPath: /backup
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n jellyfin-config backup
+                  resticprofile -c /secrets/profiles.yaml -n jellyfin-config copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: jellyfin-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: config
+                  mountPath: /config
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          volumes:
+            - name: secrets
+              secret:
+                secretName: jellyfin-backup-config
+            - name: config
+              persistentVolumeClaim:
+                claimName: jellyfin-config
+            - name: backup-tmp
+              emptyDir: {}

@@ -45,3 +45,29 @@ spec:
           protocol: UDP
         - port: 1900
           protocol: UDP
+---
+# Backup jobs need DNS, the Synology rest-server (8888) and B2 over HTTPS.
+# Declaring egress here also confines the backup pods to exactly those.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: allow-backup-egress
+  namespace: jellyfin
+spec:
+  podSelector:
+    matchLabels:
+      app: jellyfin-backup
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 8888
+          protocol: TCP
+    - ports:
+        - port: 443
+          protocol: TCP
