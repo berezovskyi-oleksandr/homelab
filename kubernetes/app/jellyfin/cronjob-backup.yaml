@@ -27,7 +27,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: sqlite-backup
-              image: alpine:3.21
+              image: alpine:3.24
               command:
                 - sh
                 - -c
@@ -107,7 +107,7 @@ spec:
           restartPolicy: OnFailure
           initContainers:
             - name: sqlite-backup
-              image: alpine:3.21
+              image: alpine:3.24
               command:
                 - sh
                 - -c
