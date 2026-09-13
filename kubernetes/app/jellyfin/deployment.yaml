@@ -43,7 +43,7 @@ spec:
               mountPath: /db-local
       containers:
         - name: jellyfin
-          image: jellyfin/jellyfin:10.11.11
+          image: jellyfin/jellyfin:12.0
           env:
             - name: JELLYFIN_PublishedServerUrl
               value: https://${JELLYFIN_HOST}
@@ -62,6 +62,15 @@ spec:
           resources:
             limits:
               gpu.intel.com/i915: "1"
+          # 12.0's first boot runs one-way database migrations that take several
+          # minutes and must not be interrupted. startupProbe holds liveness off
+          # until the server answers; liveness/readiness take over once up.
+          startupProbe:
+            httpGet:
+              port: 8096
+              path: /health
+            failureThreshold: 90
+            periodSeconds: 10
           livenessProbe:
             httpGet:
               port: 8096
