@@ -5,6 +5,11 @@
 # The volume is mounted read-write on purpose: jellyfin.db is in WAL mode, and
 # SQLite cannot open a WAL database from a read-only filesystem once Jellyfin has
 # closed it and removed the -wal/-shm files (e.g. while scaled to zero).
+# The connection itself is read-only (?mode=ro). A read-write connection that
+# believes it is the last one checkpoints and deletes -wal/-shm on close; when
+# Jellyfin had lost its POSIX locks this deleted them under the running server
+# and corrupted jellyfin.db (2026-09-16). The copy is integrity-checked so a
+# broken snapshot fails the job instead of landing in restic.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -34,7 +39,8 @@ spec:
                 - |
                   set -e
                   apk add --no-cache sqlite
-                  sqlite3 /db-local/jellyfin.db ".backup /backup/jellyfin.db"
+                  sqlite3 "file:/db-local/jellyfin.db?mode=ro" ".backup /backup/jellyfin.db"
+                  [ "$(sqlite3 /backup/jellyfin.db 'PRAGMA integrity_check')" = ok ]
               volumeMounts:
                 - name: db
                   mountPath: /db-local
@@ -84,7 +90,8 @@ spec:
 # media files and the metadata providers.
 # Intro Skipper keeps its results in two live WAL-mode SQLite databases, so they
 # are snapshotted with sqlite3 ".backup" rather than copied as files (which could
-# capture a torn page mid-write). Read-write mount for the same reason as above.
+# capture a torn page mid-write). Read-write mount and read-only connection for
+# the same reasons as above.
 apiVersion: batch/v1
 kind: CronJob
 metadata:
@@ -116,7 +123,8 @@ spec:
                   apk add --no-cache sqlite
                   mkdir -p /backup/introskipper
                   for db in introskipper.db introskipper-cache.db; do
-                    sqlite3 "/config/data/introskipper/$db" ".backup /backup/introskipper/$db"
+                    sqlite3 "file:/config/data/introskipper/$db?mode=ro" ".backup /backup/introskipper/$db"
+                    [ "$(sqlite3 "/backup/introskipper/$db" 'PRAGMA integrity_check')" = ok ]
                   done
               volumeMounts:
                 - name: config
