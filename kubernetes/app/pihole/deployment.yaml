@@ -27,7 +27,7 @@ spec:
               mountPath: /data
       containers:
         - name: pihole
-          image: pihole/pihole:2026.02.0
+          image: pihole/pihole:2026.07.2
           envFrom:
             - configMapRef:
                 name: pihole-config
@@ -95,7 +95,7 @@ spec:
               mountPath: /data
 
         - name: dnscrypt-proxy
-          image: klutchell/dnscrypt-proxy:v2.1.15
+          image: klutchell/dnscrypt-proxy:v2.1.18
           imagePullPolicy: IfNotPresent
           env:
             - name: TZ
