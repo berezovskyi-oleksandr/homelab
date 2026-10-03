@@ -93,22 +93,27 @@ spec:
             initialDelaySeconds: 20
             periodSeconds: 10
             failureThreshold: 30    # DB migrations on first start / upgrades
+          # Generous timeouts: large imports (Google Timeline, ~500k points) keep the JVM busy
+          # for minutes and /actuator/health answers slowly; a 1s timeout got the pod killed.
           livenessProbe:
             httpGet:
               port: 8080
               path: /actuator/health
             periodSeconds: 30
+            timeoutSeconds: 10
+            failureThreshold: 6
           readinessProbe:
             httpGet:
               port: 8080
               path: /actuator/health
             periodSeconds: 10
+            timeoutSeconds: 5
           resources:
             requests:
               cpu: 100m
-              memory: 512Mi
+              memory: 1Gi
             limits:
-              memory: 1536Mi
+              memory: 3Gi    # heap = 75%; 1.5Gi ran out of heap processing a large import
       volumes:
         - name: data
           persistentVolumeClaim:
