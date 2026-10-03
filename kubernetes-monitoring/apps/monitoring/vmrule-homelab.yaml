@@ -1,0 +1,36 @@
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: homelab
+  namespace: monitoring
+spec:
+  groups:
+    - name: unifi-gateway
+      rules:
+        # Baseline load is 2–5; the 2026-09-26 memory-pressure incident sat at 15–25.
+        - alert: UnifiGatewayHighLoad
+          expr: avg_over_time(unpoller_device_load_average_1{type="udm"}[15m]) > 10
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "UniFi gateway load is {{ $value | humanize }} (15m avg)"
+        # Baseline is 84–92% and creeps up ~1%/3 days until something restarts.
+        - alert: UnifiGatewayMemoryHigh
+          expr: avg_over_time(unpoller_device_memory_utilization_ratio{type="udm"}[30m]) > 0.93
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "UniFi gateway memory at {{ $value | humanizePercentage }} (30m avg)"
+    - name: victoria-logs
+      rules:
+        # The gateway alone logs DHCP chatter every few minutes, so zero rows
+        # means the syslog path is broken (e.g. the 2026-09-22 IP change).
+        - alert: SyslogIngestionStalled
+          expr: sum(rate(vl_rows_ingested_total{type="syslog_udp"}[30m])) == 0
+          for: 15m
+          labels:
+            severity: warning
+          annotations:
+            summary: "VictoriaLogs has received no syslog for 45m"

@@ -41,6 +41,9 @@ spec:
             value: ":514"
             useRemoteIP: true
             useLocalTimestamp: true
+      # Scraped by the stack's vmagent so ingestion stalls can alert.
+      vmServiceScrape:
+        enabled: true
       resources:
         requests:
           cpu: 50m
