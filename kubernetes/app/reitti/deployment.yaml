@@ -61,10 +61,9 @@ spec:
             # Tiles are proxied server-side through /api/v1/tiles, so the in-cluster URL works.
             - name: TILES_CACHE
               value: http://reitti-tile-cache
-            # Authentication against Authelia over OIDC (redirect URI /login/oauth2/code/oauth).
-            # Sign-up is off: an OIDC login links to the local user whose username matches
-            # preferred_username, so rename the setup admin to match before the first SSO login.
-            # Local login stays on until that link exists — then set DISABLE_LOCAL_LOGIN=true.
+            # Authentication against Authelia over OIDC only (redirect URI /login/oauth2/code/oauth).
+            # Unknown Authelia users are auto-created as regular users. With local login disabled,
+            # the next SSO login clears the user's local password and syncs the username.
             - name: OIDC_ENABLED
               value: "true"
             - name: OIDC_ISSUER_URI
@@ -81,9 +80,9 @@ spec:
             - name: OIDC_AUTHENTICATION_METHOD
               value: client_secret_basic
             - name: OIDC_SIGN_UP_ENABLED
-              value: "false"
+              value: "true"
             - name: DISABLE_LOCAL_LOGIN
-              value: "false"
+              value: "true"
           volumeMounts:
             - name: data
               mountPath: /data
