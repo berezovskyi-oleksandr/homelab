@@ -39,9 +39,6 @@ spec:
               value: https://${REITTI_HOST}
             - name: JAVA_OPTS
               value: -XX:MaxRAMPercentage=75
-            # TEMPORARY: unlocks Settings → Manage Data (manual reprocessing). Turn off after use.
-            - name: DANGEROUS_LIFE
-              value: "true"
             - name: POSTGIS_HOST
               value: reitti-db
             - name: POSTGIS_USER
