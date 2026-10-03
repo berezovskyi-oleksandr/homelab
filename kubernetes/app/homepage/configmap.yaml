@@ -24,6 +24,7 @@ data:
               type: jellyfin
               url: https://${JELLYFIN_HOST}
               key: "{{HOMEPAGE_VAR_JELLYFIN_API_KEY}}"
+              version: 2    # Jellyfin 12 dropped /emby paths and ?api_key auth
               enableBlocks: true
               enableUser: true
               enableMediaControl: false
