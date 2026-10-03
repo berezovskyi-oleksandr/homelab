@@ -1,0 +1,144 @@
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reitti-db-backup
+  namespace: reitti
+  labels:
+    app: reitti-backup
+spec:
+  schedule: "30 2 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: reitti-backup
+        spec:
+          restartPolicy: OnFailure
+          initContainers:
+            - name: pg-dump
+              image: postgis/postgis:17-3.5
+              imagePullPolicy: IfNotPresent
+              env:
+                - name: PGHOST
+                  value: reitti-db
+                - name: PGUSER
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-credentials
+                      key: DB_USERNAME
+                - name: PGPASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-credentials
+                      key: DB_PASSWORD
+                - name: PGDATABASE
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-credentials
+                      key: DB_DATABASE_NAME
+              command:
+                - sh
+                - -c
+                - pg_dump --clean --if-exists > /backup/dump.sql
+              volumeMounts:
+                - name: backup-tmp
+                  mountPath: /backup
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n reitti-db backup
+                  resticprofile -c /secrets/profiles.yaml -n reitti-db copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: backup-tmp
+                  mountPath: /backup
+          volumes:
+            - name: secrets
+              secret:
+                secretName: reitti-backup-config
+            - name: backup-tmp
+              emptyDir: {}
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: reitti-files-backup
+  namespace: reitti
+  labels:
+    app: reitti-backup
+spec:
+  schedule: "30 3 * * *"
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      template:
+        metadata:
+          labels:
+            app: reitti-backup
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: resticprofile
+              image: creativeprojects/resticprofile:0.32.0
+              imagePullPolicy: IfNotPresent
+              command:
+                - sh
+                - -c
+                - |
+                  resticprofile -c /secrets/profiles.yaml -n reitti-files backup
+                  resticprofile -c /secrets/profiles.yaml -n reitti-files copy
+              env:
+                - name: B2_ACCOUNT_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-backup-config
+                      key: B2_ACCOUNT_ID
+                - name: B2_ACCOUNT_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: reitti-backup-config
+                      key: B2_ACCOUNT_KEY
+              volumeMounts:
+                - name: secrets
+                  mountPath: /secrets
+                  readOnly: true
+                - name: files
+                  mountPath: /files
+                  readOnly: true
+              resources:
+                requests:
+                  cpu: 100m
+                  memory: 256Mi
+                limits:
+                  memory: 1Gi
+          volumes:
+            - name: secrets
+              secret:
+                secretName: reitti-backup-config
+            - name: files
+              persistentVolumeClaim:
+                claimName: reitti-data

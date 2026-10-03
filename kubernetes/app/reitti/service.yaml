@@ -1,0 +1,38 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reitti
+  namespace: reitti
+spec:
+  selector:
+    app: reitti
+  ports:
+    - port: 8080
+      targetPort: 8080
+      name: http
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reitti-redis
+  namespace: reitti
+spec:
+  selector:
+    app: reitti-redis
+  ports:
+    - port: 6379
+      targetPort: 6379
+      name: redis
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: reitti-tile-cache
+  namespace: reitti
+spec:
+  selector:
+    app: reitti-tile-cache
+  ports:
+    - port: 80
+      targetPort: 80
+      name: http

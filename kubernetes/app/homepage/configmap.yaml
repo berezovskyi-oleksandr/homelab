@@ -94,6 +94,10 @@ data:
             icon: vikunja.png
             href: https://${VIKUNJA_HOST}/
             description: Task management
+        - Reitti:
+            icon: mdi-map-marker-path
+            href: https://${REITTI_HOST}/
+            description: Location history
 
   widgets.yaml: |
     ---

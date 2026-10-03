@@ -1,0 +1,116 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reitti
+  namespace: reitti
+  labels:
+    app: reitti
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reitti
+  template:
+    metadata:
+      labels:
+        app: reitti
+    spec:
+      securityContext:
+        # The image starts as root only to remap UID/GID and chown /data, then drops to
+        # reitti (1000). Running as 1000 directly skips that; the NFS subdir provisioner
+        # creates directories 0777, so /data is writable without a chown.
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: reitti
+          image: dedicatedcode/reitti:5.6.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+              name: http
+              protocol: TCP
+          env:
+            - name: ADVERTISE_URI
+              value: https://${REITTI_HOST}
+            - name: JAVA_OPTS
+              value: -XX:MaxRAMPercentage=75
+            - name: POSTGIS_HOST
+              value: reitti-db
+            - name: POSTGIS_USER
+              valueFrom:
+                secretKeyRef:
+                  name: reitti-credentials
+                  key: DB_USERNAME
+            - name: POSTGIS_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: reitti-credentials
+                  key: DB_PASSWORD
+            - name: POSTGIS_DB
+              valueFrom:
+                secretKeyRef:
+                  name: reitti-credentials
+                  key: DB_DATABASE_NAME
+            - name: REDIS_HOST
+              value: reitti-redis
+            # Tiles are proxied server-side through /api/v1/tiles, so the in-cluster URL works.
+            - name: TILES_CACHE
+              value: http://reitti-tile-cache
+            # Authentication against Authelia over OIDC (redirect URI /login/oauth2/code/oauth).
+            # Sign-up is off: an OIDC login links to the local user whose username matches
+            # preferred_username, so rename the setup admin to match before the first SSO login.
+            # Local login stays on until that link exists — then set DISABLE_LOCAL_LOGIN=true.
+            - name: OIDC_ENABLED
+              value: "true"
+            - name: OIDC_ISSUER_URI
+              value: https://auth.${AUTHELIA_DOMAIN}
+            - name: OIDC_CLIENT_ID
+              value: reitti
+            - name: OIDC_CLIENT_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: reitti-credentials
+                  key: OIDC_CLIENT_SECRET
+            - name: OIDC_SCOPE
+              value: openid,profile,email
+            - name: OIDC_AUTHENTICATION_METHOD
+              value: client_secret_basic
+            - name: OIDC_SIGN_UP_ENABLED
+              value: "false"
+            - name: DISABLE_LOCAL_LOGIN
+              value: "false"
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            initialDelaySeconds: 20
+            periodSeconds: 10
+            failureThreshold: 30    # DB migrations on first start / upgrades
+          livenessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              memory: 1536Mi
+      volumes:
+        - name: data
+          persistentVolumeClaim:
+            claimName: reitti-data

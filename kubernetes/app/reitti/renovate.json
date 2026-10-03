@@ -1,0 +1,29 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/reitti/.+\\.yaml$"]
+  },
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/reitti/**"],
+      "semanticCommitScope": "k8s/reitti"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/reitti/**"],
+      "matchPackageNames": ["dedicatedcode/reitti", "dedicatedcode/reitti-tile-cache"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/reitti/**"],
+      "matchPackageNames": ["dedicatedcode/reitti", "dedicatedcode/reitti-tile-cache"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/reitti/**"],
+      "matchPackageNames": ["postgis/postgis", "redis", "creativeprojects/resticprofile"],
+      "enabled": false
+    }
+  ]
+}

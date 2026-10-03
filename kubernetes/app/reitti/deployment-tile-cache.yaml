@@ -1,0 +1,53 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: reitti-tile-cache
+  namespace: reitti
+  labels:
+    app: reitti-tile-cache
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: reitti-tile-cache
+  template:
+    metadata:
+      labels:
+        app: reitti-tile-cache
+    spec:
+      securityContext:
+        # nginx image starts as root (renders nginx.conf, binds :80) then drops workers to nginx
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: tile-cache
+          image: dedicatedcode/reitti-tile-cache:5.6.1
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 80
+              name: http
+          volumeMounts:
+            - name: cache
+              mountPath: /var/cache/nginx
+          livenessProbe:
+            httpGet:
+              port: 80
+              path: /health
+            periodSeconds: 30
+          readinessProbe:
+            httpGet:
+              port: 80
+              path: /health
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 20m
+              memory: 64Mi
+            limits:
+              memory: 1Gi    # keys_zone shared memory: 512m tiles + 128m panoramax
+      volumes:
+        - name: cache
+          persistentVolumeClaim:
+            claimName: reitti-tile-cache

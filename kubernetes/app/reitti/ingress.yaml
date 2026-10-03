@@ -1,0 +1,27 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: reitti
+  namespace: reitti
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt
+    # No Authelia forward-auth middleware — Reitti authenticates against Authelia
+    # natively over OIDC. A middleware here would break the OIDC callback, the
+    # token-authenticated /api ingest endpoints (OwnTracks, GPSLogger, Overland)
+    # and magic share links.
+spec:
+  tls:
+    - hosts:
+        - ${REITTI_HOST}
+      secretName: reitti-tls
+  rules:
+    - host: ${REITTI_HOST}
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: reitti
+                port:
+                  number: 8080

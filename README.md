@@ -62,6 +62,7 @@ homelab-v2/
 | **Archmirror** | Local Arch Linux package repository mirror |
 | **Blog** | Personal static blog served via git-sync + nginx (gh-pages branch) |
 | **Vikunja** | To-do list and task management, SSO via Authelia OIDC |
+| **Reitti** | Personal location history and timeline (PostGIS), SSO via Authelia OIDC |
 
 ## Infrastructure Stack
 

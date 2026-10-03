@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: reitti-db
+  namespace: reitti
+spec:
+  clusterIP: None
+  selector:
+    app: reitti-db
+  ports:
+    - port: 5432
+      targetPort: 5432

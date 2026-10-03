@@ -38,6 +38,7 @@ stringData:
     BLOG_HOST: ENC[AES256_GCM,data:eADRFTla/PPFLVCoP9uKvPZ1YhY=,iv://xbCGLkZ6guGMDU0MnVtGR0adgMqNbe0zrCerj7w8k=,tag:HHXvN6y3YvJ4U4TkENkYVA==,type:str]
     VIKUNJA_HOST: ENC[AES256_GCM,data:1VVkvVrdx02jPxHsQoQI9zJKN9v/9mE=,iv:ZagDcljNclEGvmMzS6pJWTv+FMa/a/X6POaWb+kHJuo=,tag:RuaUoX8O4LrEs491Sp4UyQ==,type:str]
     BACKUP_LOCAL_HOST: ENC[AES256_GCM,data:ABaTI3NKkhF7K2FpPwvvrHA0l/tCxAi4Qek=,iv:34ixxSpKU1c12uoMdk4nz2Vo/+5A/npB7NWMsWFytIM=,tag:qjw2fQBebCKnqCnAPiBHaw==,type:str]
+    REITTI_HOST: ENC[AES256_GCM,data:Zx0T6aUL/v6ogX1miRxzDmDQ31EImg==,iv:0LBRaaG1FHBXFWrtDX8Z6Cs75BEA7hNYm5FFrBHhyYk=,tag:Tup6HoL6E+L9GJKmv3x17Q==,type:str]
 sops:
     age:
         - enc: |
@@ -50,6 +51,6 @@ sops:
             -----END AGE ENCRYPTED FILE-----
           recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
     encrypted_regex: ^(data|stringData|email)$
-    lastmodified: "2026-09-07T11:47:37Z"
-    mac: ENC[AES256_GCM,data:4ocnThiPrXCqKTKKgwaincewzI99O7cl9CGnJHrwLRFm8vA2G6MA8yGvywoKjmln8mEfPTTcMMZY8Nd7wFKHz9i4m+CHvzC7kPhTVIDW2HrkFoN7RgywPcgnP+mrco4wOd/huBLdv9+v/j4Iz5lXBMZgbVVkNdWV4xZ4Zx3gtyM=,iv:bfK9KN4E5nZYm6CwaFm3sxG62nDnNiuP5xsIreRHkAc=,tag:wi9r3EcJOHX0azzNVpGw0Q==,type:str]
+    lastmodified: "2026-10-03T20:20:00Z"
+    mac: ENC[AES256_GCM,data:xN+k2RvU+IJyYzLRIExm0qM5F/K4s19jm0Sp1fo4L3V2dZHSb1J/JtdtxpbalA3qGxy82qDosagrhrNtdsL2/Ht7JO5f1T3Q1Z5smOBOkvWrjPqnyOWGGwe4j77UY41k50kXNh1VFbhjBYkEei+8191BlMkEmTNSdBvFdvzydIw=,iv:1Q3otFunhnMgrJI8z4XFsp92PHmogEvYi99qAkgJomo=,tag:ikTXnDjTG9fNFrumBGW5Lw==,type:str]
     version: 3.13.3
