@@ -1,0 +1,190 @@
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: dawarich
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: dawarich
+      version: 2.9.3
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: cogitri
+        namespace: flux-system
+  targetNamespace: dawarich
+  interval: 1m0s
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  # The chart hardcodes an unpinned busybox wait-for-postgres init container, no deployment
+  # strategy, and a 130s web startupProbe — too short for the first start, which runs every
+  # migration and seeds the countries table before Puma listens.
+  postRenderers:
+    - kustomize:
+        patches:
+          - target:
+              kind: Deployment
+              name: dawarich
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: dawarich
+              spec:
+                strategy:
+                  type: Recreate
+                template:
+                  spec:
+                    initContainers:
+                      - name: wait-for-postgres
+                        image: busybox:1.37
+                        imagePullPolicy: IfNotPresent
+                    containers:
+                      - name: dawarich
+                        startupProbe:
+                          failureThreshold: 60
+                        livenessProbe:
+                          periodSeconds: 30
+                          timeoutSeconds: 10
+                          failureThreshold: 6
+                        readinessProbe:
+                          timeoutSeconds: 5
+          - target:
+              kind: Deployment
+              name: dawarich-sidekiq
+            patch: |
+              apiVersion: apps/v1
+              kind: Deployment
+              metadata:
+                name: dawarich-sidekiq
+              spec:
+                strategy:
+                  type: Recreate
+                template:
+                  spec:
+                    initContainers:
+                      - name: wait-for-postgres
+                        image: busybox:1.37
+                        imagePullPolicy: IfNotPresent
+  values:
+    # Release name is dawarich-dawarich (targetNamespace prefix); keep resource names short.
+    fullnameOverride: dawarich
+
+    image:
+      # renovate: datasource=docker depName=freikin/dawarich
+      tag: "1.15.3"
+
+    keyBase:
+      existingSecret: dawarich-credentials    # key: value
+
+    # Every key is rendered into the ConfigMap as UPPER_SNAKE_CASE.
+    env:
+      timeZone: Europe/Kyiv
+      # TLS terminates at Traefik; "https" here turns on Rails force_ssl.
+      applicationProtocol: http
+      distanceUnit: km
+      # Upstream compose default; each thread holds an import batch in memory.
+      backgroundProcessingConcurrency: "3"
+      # OIDC-only login (blocks the web form and the API password sign-in since 1.14.4).
+      allowEmailPasswordLogin: "false"
+
+    # Authentication against Authelia over OIDC only. Unknown Authelia users are auto-created
+    # as regular (non-admin) users.
+    oidc:
+      enabled: true
+      providerName: Authelia
+      clientId:
+        existingSecret: dawarich-credentials
+        existingSecretKeyName: OIDC_CLIENT_ID
+      clientSecret:
+        existingSecret: dawarich-credentials
+        existingSecretKeyName: OIDC_CLIENT_SECRET
+      issuer: https://auth.${AUTHELIA_DOMAIN}
+      redirectUri: https://${DAWARICH_HOST}/users/auth/openid_connect/callback
+      autoRegister: true
+      allowEmailPasswordRegistration: false
+
+    dawarich:
+      hosts:
+        - ${DAWARICH_HOST}
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 2Gi
+
+    sidekiq:
+      resources:
+        requests:
+          cpu: 100m
+          memory: 512Mi
+        limits:
+          memory: 4Gi    # imports parse whole files in memory (Google Records.json)
+
+    postgresql:
+      host: dawarich-db
+      auth:
+        database: dawarich
+        existingSecret: dawarich-credentials    # keys: username, password
+
+    # Own single Redis (deployment-redis.yaml) instead of the bundled 3-node redis-ha.
+    redis:
+      enabled: false
+      host: dawarich-redis
+      auth: false
+
+    # RWO volumes shared by web and sidekiq — fine on the single node.
+    persistence:
+      public:
+        # Static assets, re-synced from the image on every web start.
+        storageClass: nfs-synology-ssd
+        size: 1Gi
+      watched:
+        # Drop folder: <user-email>/<file> is auto-imported.
+        storageClass: nfs-synology-ssd
+        size: 1Gi
+      storage:
+        # ActiveStorage: uploaded imports, exports, videos.
+        storageClass: nfs-synology-ssd
+        size: 10Gi
+
+    serviceAccount:
+      automount: false
+
+    podLabels:
+      app: dawarich
+
+    # The image starts as root only to chown volumes and gosu-drop when PUID/PGID are set.
+    # Running as 1000 directly skips that; tmp/ is 0777 in the image and the NFS subdir
+    # provisioner creates directories 0777.
+    podSecurityContext:
+      runAsNonRoot: true
+      runAsUser: 1000
+      runAsGroup: 1000
+      seccompProfile:
+        type: RuntimeDefault
+    securityContext:
+      allowPrivilegeEscalation: false
+
+    ingress:
+      enabled: true
+      # No Authelia forward-auth middleware — Dawarich authenticates against Authelia
+      # natively over OIDC. A middleware here would break the OIDC callback and the
+      # api_key-authenticated /api ingest endpoints (OwnTracks, Overland, mobile app).
+      annotations:
+        cert-manager.io/cluster-issuer: letsencrypt
+      hosts:
+        - host: ${DAWARICH_HOST}
+          paths:
+            - path: /
+              pathType: Prefix
+      tls:
+        - secretName: dawarich-tls
+          hosts:
+            - ${DAWARICH_HOST}

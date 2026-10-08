@@ -1,0 +1,38 @@
+{
+  "kubernetes": {
+    "fileMatch": ["kubernetes/app/dawarich/.+\\.yaml$"]
+  },
+  "customManagers": [
+    {
+      "customType": "regex",
+      "fileMatch": ["kubernetes/app/dawarich/release\\.yaml$"],
+      "matchStrings": [
+        "#\\s*renovate:\\s*datasource=(?<datasource>\\S+)\\s+depName=(?<depName>\\S+)\\s*\\n\\s*tag:\\s*[\"']?(?<currentValue>[^\\s\"']+)"
+      ]
+    }
+  ],
+  "packageRules": [
+    {
+      "matchFileNames": ["kubernetes/app/dawarich/**"],
+      "semanticCommitScope": "k8s/dawarich"
+    },
+    {
+      "matchFileNames": ["kubernetes/app/dawarich/**"],
+      "matchPackageNames": ["freikin/dawarich"],
+      "matchUpdateTypes": ["patch", "minor"],
+      "automerge": true
+    },
+    {
+      "matchFileNames": ["kubernetes/app/dawarich/**"],
+      "matchPackageNames": ["freikin/dawarich"],
+      "matchUpdateTypes": ["major"],
+      "automerge": false
+    },
+    {
+      "description": "Ignore infrastructure images",
+      "matchFileNames": ["kubernetes/app/dawarich/**"],
+      "matchPackageNames": ["postgis/postgis", "redis", "creativeprojects/resticprofile"],
+      "enabled": false
+    }
+  ]
+}

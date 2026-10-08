@@ -63,6 +63,7 @@ homelab-v2/
 | **Blog** | Personal static blog served via git-sync + nginx (gh-pages branch) |
 | **Vikunja** | To-do list and task management, SSO via Authelia OIDC |
 | **Reitti** | Personal location history and timeline (PostGIS), SSO via Authelia OIDC |
+| **Dawarich** | Location history and timeline (PostGIS + Sidekiq), evaluated as a Reitti replacement; SSO via Authelia OIDC |
 
 ## Infrastructure Stack
 

@@ -13,7 +13,8 @@
     "local>oleksandr/homelab//kubernetes/app/lubelogger/renovate.json",
     "local>oleksandr/homelab//kubernetes/app/firefly/renovate.json",
     "local>oleksandr/homelab//kubernetes/app/podsync/renovate.json",
-    "local>oleksandr/homelab//kubernetes/app/reitti/renovate.json"
+    "local>oleksandr/homelab//kubernetes/app/reitti/renovate.json",
+    "local>oleksandr/homelab//kubernetes/app/dawarich/renovate.json"
   ],
   "enabledManagers": ["kubernetes", "custom.regex"],
   "automergeType": "branch",

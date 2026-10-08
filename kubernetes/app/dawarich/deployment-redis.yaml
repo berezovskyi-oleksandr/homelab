@@ -1,0 +1,55 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dawarich-redis
+  namespace: dawarich
+  labels:
+    app: dawarich-redis
+spec:
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      app: dawarich-redis
+  template:
+    metadata:
+      labels:
+        app: dawarich-redis
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 999    # redis user in the alpine image
+        runAsGroup: 999
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: redis
+          image: redis:7.4.11-alpine
+          imagePullPolicy: IfNotPresent
+          # Sidekiq job queue. Snapshots (as in upstream compose) survive container restarts;
+          # the emptyDir is lost with the pod, which only drops queued jobs.
+          args: ["--save", "900", "1", "--save", "300", "10", "--appendonly", "no"]
+          ports:
+            - containerPort: 6379
+              name: redis
+          volumeMounts:
+            - name: data
+              mountPath: /data
+          livenessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 30
+          readinessProbe:
+            tcpSocket:
+              port: 6379
+            periodSeconds: 10
+          resources:
+            requests:
+              cpu: 20m
+              memory: 32Mi
+            limits:
+              memory: 256Mi
+      volumes:
+        - name: data
+          emptyDir: {}
