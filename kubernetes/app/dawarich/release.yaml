@@ -42,7 +42,7 @@ spec:
                   spec:
                     initContainers:
                       - name: wait-for-postgres
-                        image: busybox:1.37
+                        image: busybox:1.38
                         imagePullPolicy: IfNotPresent
                     containers:
                       - name: dawarich
@@ -69,7 +69,7 @@ spec:
                   spec:
                     initContainers:
                       - name: wait-for-postgres
-                        image: busybox:1.37
+                        image: busybox:1.38
                         imagePullPolicy: IfNotPresent
   values:
     # Release name is dawarich-dawarich (targetNamespace prefix); keep resource names short.
