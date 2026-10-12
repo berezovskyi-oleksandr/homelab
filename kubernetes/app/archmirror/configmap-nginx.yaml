@@ -6,6 +6,8 @@ metadata:
   namespace: archmirror
 data:
   nginx.conf: |
+    worker_processes auto;
+
     events {
         worker_connections 1024;
     }
@@ -15,6 +17,8 @@ data:
         default_type application/octet-stream;
 
         sendfile on;
+        # NFS reads block the worker; offload them so /health keeps answering
+        aio threads;
         gzip on;
 
         server {
