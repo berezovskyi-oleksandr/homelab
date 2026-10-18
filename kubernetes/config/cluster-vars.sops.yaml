@@ -40,6 +40,7 @@ stringData:
     BACKUP_LOCAL_HOST: ENC[AES256_GCM,data:ABaTI3NKkhF7K2FpPwvvrHA0l/tCxAi4Qek=,iv:34ixxSpKU1c12uoMdk4nz2Vo/+5A/npB7NWMsWFytIM=,tag:qjw2fQBebCKnqCnAPiBHaw==,type:str]
     REITTI_HOST: ENC[AES256_GCM,data:Zx0T6aUL/v6ogX1miRxzDmDQ31EImg==,iv:0LBRaaG1FHBXFWrtDX8Z6Cs75BEA7hNYm5FFrBHhyYk=,tag:Tup6HoL6E+L9GJKmv3x17Q==,type:str]
     DAWARICH_HOST: ENC[AES256_GCM,data:Gpt9acoks8gnlvHnMLsFhH18fzu0sLjp,iv:QrJd20KcFtMlWarCgMVv1riUlJF3Qj/aYa2vJQizmpg=,tag:JTmmJHZ9u4ecg3/8frYSEA==,type:str]
+    POD_CIDR: ENC[AES256_GCM,data:TX6OQd+8IlgAk2C2kQ==,iv:F+sDxOPvWg3dgPB8NlzfpC7toY88FBeKXzjgUSk1H8M=,tag:NUdzsKszagRhG2+U4YlOcw==,type:str]
 sops:
     age:
         - enc: |
@@ -52,6 +53,6 @@ sops:
             -----END AGE ENCRYPTED FILE-----
           recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
     encrypted_regex: ^(data|stringData|email)$
-    lastmodified: "2026-10-08T10:16:10Z"
-    mac: ENC[AES256_GCM,data:CYjhG3nyn95vgIdpaSxiRl+wR5tm+YOQv2GbfAIPBe62j5dEPxYF6JRFDMxBrQIbQkEgSQ+lWYN8verXZ1SnBSUJ7elKeFDn6ioJsuXF3eMBMZhgQKLo8kgOnYajgVh5sNJsmtdrH9Ret+DudeMb+bvgV7gSETKhVKAWC8h64f8=,iv:4hNo9beooqlJYkOB9i3vzfiXofUcPMy6BDcktIm1U6k=,tag:prnXCtS3bjjUs+1YS9CzlA==,type:str]
+    lastmodified: "2026-10-18T10:53:13Z"
+    mac: ENC[AES256_GCM,data:UqYOF0M6gaVjrE3/OQK/vQ0+lUcwan6fIvrJnm2BE6O28pDFL9iIDAo1ebp0oYhT8+cxNl/tTGlfH5TCblxpSCzu77/8eOgTdn19xqhTC8H8Yw56HVnYWNKZaQTyH+Qw6cG9HFf+d5OTYKeOEZufxZzpF7gT6M8BIssQ1vxEFQM=,iv:Vt1ln9ur5Dejod4X2+JUxwMwjlS198EWMASIw0Gf3Hk=,tag:NSnVkPLLTkHckVLEdTylWg==,type:str]
     version: 3.13.3

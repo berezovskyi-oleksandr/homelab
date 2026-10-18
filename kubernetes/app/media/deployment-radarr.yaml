@@ -58,6 +58,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: media-common-env
+          env:
+            - name: RADARR__SERVER__TRUSTEDNETWORKS
+              value: ${POD_CIDR}
           ports:
             - containerPort: 7878
               name: http

@@ -58,6 +58,9 @@ spec:
           envFrom:
             - configMapRef:
                 name: media-common-env
+          env:
+            - name: SONARR__SERVER__TRUSTEDNETWORKS
+              value: ${POD_CIDR}
           ports:
             - containerPort: 8989
               name: http
