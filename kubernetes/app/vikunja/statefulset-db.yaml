@@ -7,7 +7,7 @@ metadata:
     app: vikunja-db
 spec:
   serviceName: vikunja-db
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: vikunja-db
