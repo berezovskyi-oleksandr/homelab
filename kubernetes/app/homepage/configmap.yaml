@@ -87,10 +87,6 @@ data:
             icon: paperless-ngx.png
             href: https://${PAPERLESS_HOST}/
             description: Documents storage
-        - Grocy:
-            icon: grocy.png
-            href: https://${GROCY_HOST}/
-            description: Chores and inventory tracker
         - Vikunja:
             icon: vikunja.png
             href: https://${VIKUNJA_HOST}/

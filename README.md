@@ -28,9 +28,7 @@ homelab-v2/
     │   ├── archmirror/
     │   ├── blog/
     │   ├── external/       # External service vars (e.g. Home Assistant)
-    │   ├── firefly/
     │   ├── gitea/
-    │   ├── grocy/
     │   ├── homepage/
     │   ├── immich/
     │   ├── jellyfin/
@@ -49,13 +47,11 @@ homelab-v2/
 | Service | Description |
 |---------|-------------|
 | **Gitea** | Self-hosted Git service |
-| **Firefly III** | Personal finance manager |
 | **Immich** | Photo and video management with face recognition |
 | **Jellyfin** | Media streaming with Intel GPU hardware transcoding |
 | **Media Stack** | Sonarr, Radarr, Prowlarr, qBittorrent — automated media acquisition |
 | **Paperless-ngx** | Document management with OCR |
 | **Pi-hole** | DNS sinkhole with ad blocking and encrypted DNS via dnscrypt-proxy |
-| **Grocy** | Pantry and grocery management |
 | **LubeLogger** | Vehicle maintenance tracker |
 | **Homepage** | Dashboard aggregator |
 | **Podsync** | Podcast downloader |
