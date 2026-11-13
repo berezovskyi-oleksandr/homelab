@@ -17,7 +17,7 @@ stringData:
     JELLYFIN_INTERNAL_HOST: ENC[AES256_GCM,data:gwVKPi5Lim30G090/LVSE2+/M+UI,iv://2yET87s4AwS6dom3DcITqBUzJq5n7aM7963Eyt+y0=,tag:dz6sohtYmtBBrxfAMrN3MQ==,type:str]
     ARCHMIRROR_HOST: ENC[AES256_GCM,data:KATP5naJIkO0nsa+YYXylMgL0ulvorc=,iv:nYP+RuMLDS7DKZCuxjD9cwliX6zfdepSY8q9cL6swH8=,tag:WBqdwRZSolhg+/Ps7oAP9w==,type:str]
     ARCHMIRROR_NFS_PATH: ENC[AES256_GCM,data:bO+lUrn4b43FuNTOU90D1joLYw==,iv:e7CnoSTNsXBAFxQS4OBlxIzy75xyJUWJPPtT/26bF7M=,tag:aszIRhRhTGW0D1nxP8ZZGg==,type:str]
-    ARCHMIRROR_MIRROR_URL: ENC[AES256_GCM,data:k32tYfVA8a9AExM9yBjYrJ/zCS5pBilTFrGht+JHVjtobFzvJVN3F7m8Xglj,iv:qmsw343T+RBxn3Rit2bGlzwPwr/ZgulSyqPsnDXA1R0=,tag:Kw4Cb0KySulbaKx+jW+b1Q==,type:str]
+    ARCHMIRROR_MIRROR_URL: ENC[AES256_GCM,data:Sg/IhrpSUP08tYTDTD4mVaVdo8zPpDhXgr3JQQ==,iv:JopnstbfnrWppk3aeneURiVJmuSMpGaNg8SAYtcqevI=,tag:Fd0qeZ7wicN2TML6C9NJUQ==,type:str]
     PODSYNC_HOST: ENC[AES256_GCM,data:zUJ2xOF20hHsQo7AecMKksvoabNY3a0=,iv:1pmlxIiOMAOM2KDRSPgmhA2ootmgA/qLbkSeqbeo/VA=,tag:qB17GbSIj6VpgDHRZsaCqw==,type:str]
     PODSYNC_NFS_PATH: ENC[AES256_GCM,data:/FcEFuZAUIWDlGKIhzz9xi4jErij,iv:SnWKb11HEjQ2L3Db3qXcDKGCd1bkCk2CRk+VQLfZPmU=,tag:BpOVZ7AflfosRczacZQZIQ==,type:str]
     PIHOLE_HOST: ENC[AES256_GCM,data:DK1iW98H2g17q//ZQ7NyrdtspEhfuw==,iv:UDyv3c7vO42IokhPdFE5UBSyRUIv5xj/pZfYp0LITsk=,tag:fBxkFMIZ8wkkdM+leN9oXQ==,type:str]
@@ -46,6 +46,6 @@ sops:
             -----END AGE ENCRYPTED FILE-----
           recipient: age1zffnskvuezntkk703a0pyxsd5m8vx2hm33dr47wdfy8mn4fdw4sqgw0jgc
     encrypted_regex: ^(data|stringData|email)$
-    lastmodified: "2026-11-05T17:33:51Z"
-    mac: ENC[AES256_GCM,data:5t7xU5d1P5EdHvMc7lG2VGTrCKjJ7oPRDhPXAnY0pIb+OonO0aHZeJArl6GWefFMg22LMIvB7LIu9FkXpw35Ipq6KUWvgvXnGtH2DgbRSM/VQ3hMysH9xEZk6ZsviSV0fQMT0eU5UKwqNZnFk40JRz+Eao9YiMXfM12YiMUeUzQ=,iv:Xy6T62+PX14Qy3VFK6U9stKTWnBO/5VkmHgS+EFx7Fs=,tag:Rz/NMOXAs0EGIat+9fGZ2A==,type:str]
+    lastmodified: "2026-11-13T19:49:09Z"
+    mac: ENC[AES256_GCM,data:bEiNXcvadHTb7ev/Pv4ZSG0k5ssQo9niyRHsgbcM12OAwEUByGdrpHGmB1xtw7Zn97ESbfEo4d92ttJ1x7Yx/mz4L3oMIzkYK3Ps5/IBAgdUaHIHVRSyxrDLz+ARHTjLZ2AJ2M6M0j1shRqLMJOi7m3Pd4izZQIFQlrDy0u29TE=,iv:ULvpIDMd4gCTDOUwGjoedwoGuWR5mslwrnTOJ0th39M=,tag:VH3T+yhNstiru9R28tcURg==,type:str]
     version: 3.13.3
