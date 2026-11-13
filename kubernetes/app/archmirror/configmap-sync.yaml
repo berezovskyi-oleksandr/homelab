@@ -12,8 +12,18 @@ data:
     TARGET_DIR="/archlinux"
     MAX_RETRIES=3
 
+    # Full rsync output goes to the PVC so it survives pod deletion on job failure
+    LOG_DIR="$TARGET_DIR/.sync-logs"
+    KEEP_LOGS=14
+
+    mkdir -p "$LOG_DIR"
+    LOG="$LOG_DIR/sync-$(date -u '+%Y%m%dT%H%M%SZ').log"
+    ls -1t "$LOG_DIR"/sync-*.log 2>/dev/null | tail -n +$((KEEP_LOGS + 1)) | xargs -r rm -f
+
     log() {
-        echo "[$(date '+%Y-%m-%d %H:%M:%S')] $1" >&2
+        msg="[$(date '+%Y-%m-%d %H:%M:%S')] $1"
+        echo "$msg" >&2
+        echo "$msg" >> "$LOG"
     }
 
     if [ -z "$MIRROR_URL" ]; then
@@ -21,13 +31,27 @@ data:
         exit 1
     fi
 
-    mkdir -p "$TARGET_DIR"
-
     do_rsync() {
         rsync --timeout=600 \
               -rltH --no-perms --chmod=D755,F664 --safe-links --delete-delay --delay-updates \
-              -v --info=progress2 \
-              "$@"
+              --exclude='/.sync-logs/' \
+              --itemize-changes --stats \
+              "$@" >> "$LOG" 2>&1
+    }
+
+    run_pass() {
+        name=$1
+        shift
+        log "$name: start"
+        rc=0
+        do_rsync "$@" || rc=$?
+        # 24 = files vanished on the sender, expected while upstream itself is updating
+        if [ "$rc" -eq 24 ]; then
+            log "$name: some files vanished upstream (rc=24), treating as success"
+            rc=0
+        fi
+        log "$name: exit $rc"
+        return "$rc"
     }
 
     for i in $(seq 1 $MAX_RETRIES); do
@@ -36,20 +60,22 @@ data:
         # Pass 1: sync packages, skip db/files indices so they are never updated
         # before their referenced package files arrive (avoids 404s).
         # Pass 2: sync everything including indices now that packages are present.
-        if do_rsync \
+        if run_pass "pass 1 (packages)" \
                 --exclude='*.db' --exclude='*.db.*' \
                 --exclude='*.files' --exclude='*.files.*' \
                 "$MIRROR_URL/" "$TARGET_DIR/" \
-            && do_rsync \
+            && run_pass "pass 2 (indices)" \
                 "$MIRROR_URL/" "$TARGET_DIR/"; then
             log "Sync completed successfully"
             exit 0
         fi
+
+        tail -n 20 "$LOG" >&2
 
         if [ "$i" -lt "$MAX_RETRIES" ]; then
             sleep $((i * 300))
         fi
     done
 
-    log "All sync attempts failed"
+    log "All sync attempts failed, full log: $LOG"
     exit 1
