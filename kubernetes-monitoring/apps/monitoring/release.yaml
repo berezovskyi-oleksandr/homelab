@@ -58,6 +58,21 @@ spec:
 
     vmalert:
       enabled: true
+      spec:
+        extraArgs:
+          # Base for alert GeneratorURL (chart appends explore?left=...); the
+          # chart default derives it from a Grafana ingress we don't have.
+          external.url: http://10.127.1.50:30300
+
+    defaultRules:
+      rules:
+        # Upstream text assumes service-discovered targets; static scrapes
+        # (synology, coreelec, ...) have no service/namespace labels.
+        TargetDown:
+          spec:
+            annotations:
+              summary: '{{ $labels.job }} is unreachable'
+              description: '{{ printf "%.4g" $value }}% of {{ $labels.job }} targets are down{{ if $labels.namespace }} ({{ $labels.namespace }}/{{ $labels.service }}){{ end }}.'
 
     # k3s runs scheduler/controller-manager in one binary with no separate
     # scrape endpoints, and uses kine instead of etcd — disabling these drops
@@ -102,6 +117,45 @@ spec:
               - bot_token_file: /etc/vm/secrets/alertmanager-telegram/bot_token
                 chat_id_file: /etc/vm/secrets/alertmanager-telegram/chat_id
                 send_resolved: true
+                parse_mode: HTML
+                message: '{{ template "telegram.homelab.message" . }}'
+      # One block per alert: name, summary, labels, Kyiv time, links.
+      templateFiles:
+        telegram.tmpl: |
+          {{ define "telegram.homelab.alert" -}}
+          {{ if eq .Status "resolved" }}✅{{ else if eq .Labels.severity "critical" }}🔴{{ else }}🟠{{ end }} <b>{{ .Labels.alertname | html }}</b>{{ if eq .Status "resolved" }} — resolved{{ end }}
+          {{- if eq .Status "firing" }}{{ with .Annotations.summary }}
+          {{ . | html }}{{ end }}{{ end }}
+          {{- if eq .Status "firing" }}{{ with .Annotations.description }}
+          <i>{{ . | html }}</i>{{ end }}{{ end }}
+          {{- $labels := "" }}
+          {{- range .Labels.SortedPairs }}{{ if not (match "^(alertname|severity|prometheus|alertgroup|endpoint|container)$" .Name) }}
+          {{- $labels = printf "%s%s=%s " $labels .Name .Value }}{{ end }}{{ end }}
+          {{- with trimSpace $labels }}
+          🎯 <code>{{ . | html }}</code>{{ end }}
+          🕒 {{ .StartsAt | tz "Europe/Kyiv" | date "15:04 02.01" }}
+          {{- if eq .Status "resolved" }} → {{ .EndsAt | tz "Europe/Kyiv" | date "15:04" }} ({{ (.EndsAt.Sub .StartsAt).Seconds | humanizeDuration }}){{ end }}
+          {{- if eq .Status "firing" }}
+          {{- $links := "" }}
+          {{- with .GeneratorURL }}{{ $links = printf "<a href=\"%s\">query</a>" (. | html) }}{{ end }}
+          {{- with .Annotations.dashboard }}{{ $links = printf "%s · <a href=\"%s\">dashboard</a>" $links (. | html) }}{{ end }}
+          {{- with .Annotations.runbook_url }}{{ $links = printf "%s · <a href=\"%s\">runbook</a>" $links (. | html) }}{{ end }}
+          {{- with $links }}
+          🔗 {{ . }}{{ end }}
+          {{- end }}
+          {{- end }}
+
+          {{ define "telegram.homelab.message" -}}
+          {{ range $i, $a := .Alerts.Firing }}{{ if $i }}
+
+          {{ end }}{{ template "telegram.homelab.alert" $a }}{{ end }}
+          {{- if and .Alerts.Firing .Alerts.Resolved }}
+
+          {{ end }}
+          {{- range $i, $a := .Alerts.Resolved }}{{ if $i }}
+
+          {{ end }}{{ template "telegram.homelab.alert" $a }}{{ end }}
+          {{- end }}
 
     grafana:
       enabled: true
