@@ -139,13 +139,11 @@ spec:
           🎯 <code>{{ . | html }}</code>{{ end }}
           🕒 {{ .StartsAt | tz "Europe/Kyiv" | date "15:04 02.01" }}
           {{- if eq .Status "resolved" }} → {{ .EndsAt | tz "Europe/Kyiv" | date "15:04" }} ({{ (.EndsAt.Sub .StartsAt).Seconds | humanizeDuration }}){{ end }}
-          {{- if eq .Status "firing" }}
-          {{- $links := "" }}
-          {{- with .GeneratorURL }}{{ $links = printf "<a href=\"%s\">query</a>" (. | html) }}{{ end }}
-          {{- with .Annotations.dashboard }}{{ $links = printf "%s · <a href=\"%s\">dashboard</a>" $links (. | html) }}{{ end }}
-          {{- with .Annotations.runbook_url }}{{ $links = printf "%s · <a href=\"%s\">runbook</a>" $links (. | html) }}{{ end }}
-          {{- with $links }}
-          🔗 {{ . }}{{ end }}
+          {{- /* parse_mode HTML makes AM use html/template: tags must be literal template text, values get auto-escaped. */}}
+          {{- if and (eq .Status "firing") .GeneratorURL }}
+          🔗 <a href="{{ .GeneratorURL }}">query</a>
+          {{- with .Annotations.dashboard }} · <a href="{{ . }}">dashboard</a>{{ end }}
+          {{- with .Annotations.runbook_url }} · <a href="{{ . }}">runbook</a>{{ end }}
           {{- end }}
           {{- end }}
 
