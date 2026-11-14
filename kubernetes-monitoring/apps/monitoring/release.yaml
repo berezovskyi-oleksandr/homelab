@@ -119,6 +119,10 @@ spec:
                 send_resolved: true
                 parse_mode: HTML
                 message: '{{ template "telegram.homelab.message" . }}'
+      # Slack-only; its ConfigMap name collides with extra-tpl once the operator
+      # truncates volume names to 63 chars ("duplicate Volume.Name").
+      monzoTemplate:
+        enabled: false
       # One block per alert: name, summary, labels, Kyiv time, links.
       templateFiles:
         telegram.tmpl: |
