@@ -124,12 +124,18 @@ spec:
             httpGet:
               port: 8000
               path: /api/
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 60
             periodSeconds: 30
           readinessProbe:
             httpGet:
               port: 8000
               path: /api/
+              httpHeaders:
+                - name: Host
+                  value: localhost
             initialDelaySeconds: 30
             periodSeconds: 10
           resources:
