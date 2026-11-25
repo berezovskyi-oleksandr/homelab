@@ -1,0 +1,69 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: blackbox-public
+  namespace: monitoring
+spec:
+  jobName: blackbox-public
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: http_up
+  interval: 60s
+  scrapeTimeout: 15s
+  targets:
+    static:
+      targets:
+        - https://auth.berezovskyi.dev
+        - https://blog.berezovskyi.dev
+        - https://dawarich.berezovskyi.dev
+        - https://gitea.berezovskyi.dev
+        - https://home.berezovskyi.dev
+        - https://homeassistant.lviv.berezovskyi.dev
+        - https://immich.berezovskyi.dev
+        - https://jellyfin.berezovskyi.dev
+        - https://lubelogger.berezovskyi.dev
+        - https://paperless.berezovskyi.dev
+        - https://pihole.berezovskyi.dev
+        - https://podsync.berezovskyi.dev
+        - https://qbittorrent.berezovskyi.dev
+        - https://radarr.berezovskyi.dev
+        - https://reitti.berezovskyi.dev
+        - https://seerr.berezovskyi.dev
+        - https://sonarr.berezovskyi.dev
+        # vikunja.berezovskyi.dev: paused (deployment 0/0, 503) — re-add on revert of 809eea6.
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: blackbox-internal
+  namespace: monitoring
+spec:
+  jobName: blackbox-internal
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: http_up
+  interval: 60s
+  scrapeTimeout: 15s
+  targets:
+    static:
+      targets:
+        - http://archmirror.service.lviv/archlinux/lastsync
+        - http://jellyfin.service.lviv/health
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMProbe
+metadata:
+  name: blackbox-dns
+  namespace: monitoring
+spec:
+  jobName: blackbox-dns
+  vmProberSpec:
+    url: blackbox-exporter.monitoring.svc:9115
+  module: dns_pihole
+  interval: 60s
+  scrapeTimeout: 10s
+  targets:
+    static:
+      targets:
+        - 10.127.1.200:53   # pihole-dns LoadBalancer on Talos

@@ -19,6 +19,8 @@ spec:
     remediation:
       retries: 3
   upgrade:
+    # Flux skips CRD updates on upgrade by default; chart bumps carry new CRDs.
+    crds: CreateReplace
     remediation:
       retries: 3
   values:
@@ -34,6 +36,14 @@ spec:
       enabled: true
       spec:
         retentionPeriod: "12"        # months — VM is very space-efficient
+        # Operator default limit is 1500Mi; it sat at ~1.2Gi with Pi-only series
+        # and Talos remote_write adds ~55% more.
+        resources:
+          requests:
+            cpu: 150m
+            memory: 1Gi
+          limits:
+            memory: 3Gi
         storage:
           accessModes:
             - ReadWriteOnce
@@ -53,8 +63,13 @@ spec:
                 nodePort: 30428
 
     # Local scrape of the Pi/k3s itself (node-exporter, kube-state-metrics, kubelet).
+    # Talos remote-writes its own series here with cluster=talos
+    # (kubernetes/infrastructure/controllers/victoria-metrics-agent/).
     vmagent:
       enabled: true
+      spec:
+        externalLabels:
+          cluster: rpi
 
     vmalert:
       enabled: true
@@ -73,6 +88,12 @@ spec:
             annotations:
               summary: '{{ $labels.job }} is unreachable'
               description: '{{ printf "%.4g" $value }}% of {{ $labels.job }} targets are down{{ if $labels.namespace }} ({{ $labels.namespace }}/{{ $labels.service }}){{ end }}.'
+        # Talos load is dominated by tasks blocked on NFS IO (qBittorrent,
+        # Synology scrubs), not CPU: load/core > 2 at ~30% CPU. Talos gets a
+        # CPU-PSI rule in vmrule-homelab.yaml instead.
+        NodeSystemSaturation:
+          spec:
+            expr: (node_load1{job="node-exporter",cluster!="talos"} / count(node_cpu_seconds_total{job="node-exporter",mode="idle",cluster!="talos"}) without(cpu,mode)) > 2
 
     # k3s runs scheduler/controller-manager in one binary with no separate
     # scrape endpoints, and uses kine instead of etcd — disabling these drops
@@ -90,10 +111,17 @@ spec:
         # Mounted at /etc/vm/secrets/alertmanager-telegram/ (bot_token, chat_id).
         secrets:
           - alertmanager-telegram
+        # The Pi's resolver is pihole on Talos: with Talos down, api.telegram.org
+        # wouldn't resolve and the "Talos is down" alert could never be sent.
+        # Single replica (no gossip), so no cluster DNS needed.
+        dnsPolicy: None
+        dnsConfig:
+          nameservers:
+            - 10.127.1.1
       config:
         route:
           receiver: telegram
-          group_by: ["alertname", "job"]
+          group_by: ["alertname", "cluster", "job"]
           group_wait: 30s
           group_interval: 5m
           repeat_interval: 12h
@@ -109,7 +137,19 @@ spec:
               - severity="critical"
             target_matchers:
               - severity="warning"
-            equal: ["alertname", "job"]
+            equal: ["alertname", "cluster", "job"]
+          # WAN/hairpin/Traefik down: one aggregate alert instead of one per host.
+          - source_matchers:
+              - alertname="PublicIngressDown"
+            target_matchers:
+              - alertname="ProbeDown"
+            equal: ["job"]
+          # Talos stopped sending metrics: its absent()-based alerts are noise.
+          - source_matchers:
+              - alertname="TalosMetricsMissing"
+            target_matchers:
+              - cluster="talos"
+              - alertname!="TalosMetricsMissing"
         receivers:
           - name: blackhole
           - name: telegram
@@ -147,7 +187,26 @@ spec:
           {{- end }}
           {{- end }}
 
+          {{ define "telegram.homelab.short" -}}
+          {{ if eq .Status "resolved" }}✅{{ else if eq .Labels.severity "critical" }}🔴{{ else }}🟠{{ end }} <code>{{ with .Labels.namespace }}{{ . | html }}/{{ end }}{{ with .Labels.pod }}{{ . | html }}{{ else }}{{ with .Labels.name }}{{ . | html }}{{ else }}{{ .Labels.instance | html }}{{ end }}{{ end }}</code>
+          {{- end }}
+
+          {{- /* Telegram caps messages at 4096 chars and AM then sends only a
+               placeholder, so groups of >3 get one line per alert, capped at 40. */}}
+          {{ define "telegram.homelab.compact" -}}
+          <b>{{ .CommonLabels.alertname | html }}</b>{{ with .CommonLabels.cluster }} · {{ . | html }}{{ end }}
+          {{- with .Alerts.Firing }}
+          🔥 {{ len . }} firing{{ range $i, $a := . }}{{ if lt $i 40 }}
+          {{ template "telegram.homelab.short" $a }}{{ end }}{{ end }}{{ if gt (len .) 40 }}
+          …{{ end }}{{ end }}
+          {{- with .Alerts.Resolved }}
+          ✅ {{ len . }} resolved{{ range $i, $a := . }}{{ if lt $i 20 }}
+          {{ template "telegram.homelab.short" $a }}{{ end }}{{ end }}{{ if gt (len .) 20 }}
+          …{{ end }}{{ end }}
+          {{- end }}
+
           {{ define "telegram.homelab.message" -}}
+          {{ if gt (len .Alerts) 3 }}{{ template "telegram.homelab.compact" . }}{{ else -}}
           {{ range $i, $a := .Alerts.Firing }}{{ if $i }}
 
           {{ end }}{{ template "telegram.homelab.alert" $a }}{{ end }}
@@ -157,6 +216,7 @@ spec:
           {{- range $i, $a := .Alerts.Resolved }}{{ if $i }}
 
           {{ end }}{{ template "telegram.homelab.alert" $a }}{{ end }}
+          {{- end }}
           {{- end }}
 
     grafana:
@@ -169,6 +229,11 @@ spec:
       # render dirs, so it's both redundant and breaks rollouts here.
       initChownData:
         enabled: false
+      # Pi (cluster=rpi) and Talos (cluster=talos) share vmsingle: show the
+      # cluster picker instead of mixing both in every panel.
+      sidecar:
+        dashboards:
+          multicluster: true
       # Native VictoriaMetrics datasource plugins (signed, from Grafana catalog).
       # - metrics: backs the "VictoriaMetrics (DS)" datasource the chart
       #   provisions by default (defaultDatasources.victoriametrics) — MetricsQL.

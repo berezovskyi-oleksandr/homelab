@@ -1,0 +1,47 @@
+---
+apiVersion: operator.victoriametrics.com/v1beta1
+kind: VMRule
+metadata:
+  name: blackbox
+  namespace: monitoring
+spec:
+  groups:
+    - name: blackbox
+      rules:
+        # Authelia-protected hosts (home, *arr, qbittorrent, seerr, pihole, podsync)
+        # answer 401 from forward-auth before Traefik reaches the backend, so
+        # here they only prove WAN+Traefik+TLS+Authelia. Their backends are
+        # covered by the Talos kube-state-metrics rules (CrashLooping etc.).
+        - alert: ProbeDown
+          expr: probe_success{job=~"blackbox-(public|internal)"} == 0
+          for: 5m
+          labels:
+            severity: critical
+          annotations:
+            summary: '{{ $labels.instance }} is down'
+            description: 'HTTP {{ with printf "probe_http_status_code{instance=%q}" $labels.instance | query }}{{ . | first | value }}{{ end }} (0 = no response: DNS/TCP/TLS failure).'
+        - alert: PiholeDNSDown
+          expr: probe_success{job="blackbox-dns"} == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'pihole (10.127.1.200) is not answering DNS queries'
+            description: 'Every LAN client uses it as resolver. Check the pihole pod on Talos.'
+        # Fires before the per-host ProbeDown (3m < 5m) and inhibits it.
+        - alert: PublicIngressDown
+          expr: max by (job) (probe_success{job="blackbox-public"}) == 0
+          for: 3m
+          labels:
+            severity: critical
+          annotations:
+            summary: 'All public *.berezovskyi.dev probes are failing'
+            description: '{{ with query "max(probe_success{job=\"blackbox-internal\"})" }}{{ if eq (. | first | value) 1.0 }}Internal *.service.lviv probes still succeed: WAN/port-forward/hairpin/DNS problem, not Talos.{{ else }}Internal probes fail too: Talos/Traefik is down.{{ end }}{{ end }}'
+        - alert: ProbeCertExpiringSoon
+          expr: (probe_ssl_last_chain_expiry_timestamp_seconds{job="blackbox-public"} - time()) < 14 * 86400
+          for: 1h
+          labels:
+            severity: warning
+          annotations:
+            summary: 'TLS cert for {{ $labels.instance }} expires in {{ $value | humanizeDuration }}'
+            description: 'cert-manager should renew 30d before expiry; check the Certificate/CertificateRequest on Talos.'

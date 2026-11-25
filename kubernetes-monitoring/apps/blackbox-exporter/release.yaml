@@ -1,0 +1,72 @@
+---
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: blackbox-exporter
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: prometheus-blackbox-exporter
+      version: 11.22.1
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: prometheus-community
+        namespace: flux-system
+  targetNamespace: monitoring
+  interval: 30m
+  install:
+    remediation:
+      retries: 3
+  upgrade:
+    remediation:
+      retries: 3
+  values:
+    # Stable Service name for VMProbe vmProberSpec.url (Flux would otherwise
+    # name the release monitoring-blackbox-exporter).
+    fullnameOverride: blackbox-exporter
+    # Pi's default resolver is pihole on Talos; resolve via the UniFi gateway so
+    # a Talos/pihole outage shows as the real failure, not DNS errors everywhere.
+    # pihole itself is checked by the dns_pihole module.
+    dnsPolicy: None
+    dnsConfig:
+      nameservers:
+        - 10.127.1.1
+    podSecurityContext:
+      seccompProfile:
+        type: RuntimeDefault
+    resources:
+      requests:
+        cpu: 10m
+        memory: 32Mi
+      limits:
+        memory: 64Mi
+    config:
+      modules:
+        # "Is something answering?" — don't follow redirects: Authelia-protected
+        # hosts answer 401 to non-browser clients (302 to browsers), apps answer
+        # 302/303 to their login page. A dead non-Authelia backend gives 503.
+        http_up:
+          prober: http
+          timeout: 10s
+          http:
+            method: GET
+            valid_http_versions: ["HTTP/1.1", "HTTP/2.0"]
+            follow_redirects: false
+            valid_status_codes: [200, 301, 302, 303, 307, 308, 401]
+            preferred_ip_protocol: ip4
+            ip_protocol_fallback: false
+        # pihole (LAN DNS for every client) answers a recursive query.
+        dns_pihole:
+          prober: dns
+          timeout: 5s
+          dns:
+            query_name: berezovskyi.dev
+            query_type: A
+            valid_rcodes: [NOERROR]
+            transport_protocol: udp
+            preferred_ip_protocol: ip4
+            ip_protocol_fallback: false
+            validate_answer_rrs:
+              fail_if_none_matches_regexp: [".*"]
