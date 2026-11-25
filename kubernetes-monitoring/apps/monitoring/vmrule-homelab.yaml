@@ -34,3 +34,49 @@ spec:
             severity: warning
           annotations:
             summary: "VictoriaLogs has received no syslog for 45m"
+    - name: talos
+      rules:
+        # Talos ships everything via its own vmagent (remote_write to vmsingle
+        # :30428). If that stops, every Talos KSM/kubelet rule silently goes
+        # quiet; the chart's Watchdog runs on the Pi and can't notice.
+        # Fires (~4m) before Talos alerts' 5m windows run dry, so the inhibit in
+        # release.yaml is active before AM would send bogus "resolved" messages.
+        - alert: TalosMetricsMissing
+          expr: absent_over_time(up{cluster="talos"}[2m])
+          for: 2m
+          labels:
+            severity: critical
+            cluster: talos
+          annotations:
+            summary: "No metrics from Talos for 4m"
+            description: "vmagent in Talos ns monitoring is down, or remote_write to 10.127.1.50:30428 is failing — or the whole node is down."
+        # The chart's KubeAPIDown is absent(up{job="apiserver"}) without a
+        # cluster split, so the Pi's own apiserver keeps it quiet forever.
+        - alert: TalosAPIServerDown
+          expr: absent(up{cluster="talos",job="apiserver"} == 1)
+          for: 10m
+          labels:
+            severity: critical
+            cluster: talos
+          annotations:
+            summary: "Talos kube-apiserver is unreachable from vmagent"
+        # Stands in for NodeSystemSaturation (disabled for Talos: NFS IO wait
+        # inflates load). Share of time some runnable task waits for a CPU.
+        - alert: TalosCPUPressure
+          expr: rate(node_pressure_cpu_waiting_seconds_total{cluster="talos",job="node-exporter"}[5m]) > 0.5
+          for: 30m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Talos CPU pressure at {{ $value | humanizePercentage }} for 30m"
+        # gotk_resource_info comes from Talos kube-state-metrics custom-resource-state.
+        # Explicit states only: OCI HelmRepositories never get a Ready condition
+        # (no `ready` label), and `!="True"` would match them forever.
+        - alert: FluxResourceNotReady
+          expr: max by (cluster, customresource_kind, exported_namespace, name) (gotk_resource_info{ready=~"False|Unknown", suspended!="true"}) > 0
+          for: 20m
+          labels:
+            severity: warning
+          annotations:
+            summary: "Flux {{ $labels.customresource_kind }} {{ $labels.exported_namespace }}/{{ $labels.name }} is not Ready"
+            description: "Check `flux get all -A --status-selector ready=false` and `flux events`."
