@@ -73,6 +73,7 @@ homelab-v2/
 | **NFS Provisioner** | Dynamic PVC provisioning backed by Synology NAS |
 | **Intel GPU Plugin** | Hardware transcoding device plugin (Jellyfin) |
 | **SOPS + age** | Secret encryption at rest |
+| **VictoriaMetrics agent** | Scrapes the cluster (kube-state-metrics, kubelet, node-exporter, Flux status) and remote-writes to the RPi5 monitoring node, which alerts via Telegram |
 
 ### Storage
 

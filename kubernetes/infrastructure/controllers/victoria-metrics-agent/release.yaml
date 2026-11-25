@@ -1,0 +1,268 @@
+---
+# Agent-only victoria-metrics-k8s-stack: scrapes Talos (kubelet/cAdvisor,
+# kube-state-metrics, node-exporter, apiserver, coredns) and remote-writes
+# everything to vmsingle on the RPi5 monitoring node, where vmalert evaluates
+# the chart's default rules. Keep the chart version in lockstep with
+# kubernetes-monitoring/apps/monitoring/release.yaml so job labels match the rules.
+apiVersion: helm.toolkit.fluxcd.io/v2
+kind: HelmRelease
+metadata:
+  name: victoria-metrics-k8s-stack
+  namespace: flux-system
+spec:
+  chart:
+    spec:
+      chart: victoria-metrics-k8s-stack
+      version: 0.84.0
+      reconcileStrategy: ChartVersion
+      sourceRef:
+        kind: HelmRepository
+        name: victoria-metrics
+        namespace: flux-system
+  targetNamespace: monitoring
+  interval: 30m
+  install:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  upgrade:
+    crds: CreateReplace
+    remediation:
+      retries: 3
+  values:
+    victoria-metrics-operator:
+      enabled: true
+      crds:
+        plain: true
+      operator:
+        # No prometheus-operator CRDs on Talos — skip the extra watches.
+        disable_prometheus_converter: true
+      resources:
+        requests:
+          cpu: 20m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+
+    # Storage, alerting and dashboards all live on the Pi.
+    vmsingle:
+      enabled: false
+    vmalert:
+      enabled: false
+    alertmanager:
+      enabled: false
+    grafana:
+      enabled: false
+    defaultRules:
+      enabled: false
+    defaultDashboards:
+      enabled: false
+
+    # With vmsingle disabled the chart falls back to this as the remoteWrite target.
+    # Pi vmsingle NodePort by IP: DNS (pihole) lives on Talos.
+    external:
+      vm:
+        write:
+          url: http://10.127.1.50:30428/api/v1/write
+
+    vmagent:
+      enabled: true
+      spec:
+        externalLabels:
+          cluster: talos
+        extraArgs:
+          # Persistent queue is an emptyDir on /var; cap it for long Pi outages.
+          remoteWrite.maxDiskUsagePerURL: 1GB
+        # No CPU limit: the operator default (200m) throttles the scrape loop.
+        resources:
+          requests:
+            cpu: 50m
+            memory: 256Mi
+          limits:
+            memory: 1Gi
+
+    kubelet:
+      vmScrapes:
+        # Duplicates cAdvisor metric names; rules only use /metrics/cadvisor.
+        resources:
+          enabled: false
+      vmScrape:
+        spec:
+          # Lists replace chart defaults wholesale — the chart's entries are restated.
+          metricRelabelConfigs:
+            - action: labeldrop
+              regex: (uid)
+            - action: labeldrop
+              regex: (id|name)
+            - action: drop
+              source_labels: [__name__]
+              regex: (rest_client_request_duration_seconds_bucket|rest_client_request_duration_seconds_sum|rest_client_request_duration_seconds_count)
+            # Every NFS PVC reports its whole Synology volume (~30 PVCs share
+            # /volume3), so KubePersistentVolumeFillingUp would fire in bulk.
+            # Synology volumes are covered by snmp_exporter on the Pi.
+            - action: drop
+              source_labels: [__name__]
+              regex: kubelet_volume_stats_.+
+          # Chart default also labelmaps __meta_kubernetes_node_label_(.+): 74 NFD/
+          # Talos node labels on every series, which overflows Telegram's 4096
+          # chars per alert. The operator still adds `node`.
+          relabelConfigs:
+            - sourceLabels: [__metrics_path__]
+              targetLabel: metrics_path
+            - targetLabel: job
+              replacement: kubelet
+
+    kubeApiServer:
+      vmScrape:
+        spec:
+          endpoints:
+            - bearerTokenFile: /var/run/secrets/kubernetes.io/serviceaccount/token
+              port: https
+              scheme: https
+              tlsConfig:
+                caFile: /var/run/secrets/kubernetes.io/serviceaccount/ca.crt
+                serverName: kubernetes
+              # Largest histograms, referenced by no rule (~25k series).
+              metricRelabelConfigs:
+                - action: drop
+                  source_labels: [__name__]
+                  regex: (etcd_request_duration_seconds_bucket|apiserver_watch_list_duration_seconds_bucket|apiserver_request_body_size_bytes_bucket|apiserver_response_sizes_bucket)
+
+    # Talos binds these to 127.0.0.1 (etcd isn't even a pod); the Pi has their
+    # rule groups disabled too.
+    kubeControllerManager:
+      enabled: false
+    kubeScheduler:
+      enabled: false
+    kubeEtcd:
+      enabled: false
+    kubeProxy:
+      enabled: false
+
+    prometheus-node-exporter:
+      # Chart defaults plus Talos noise: tmpfs/rootfs/efivarfs bind-mounts
+      # (/system, /run, /tmp=64Mi, /etc/*, /usr/lib/firmware, ...). NFS PVCs
+      # stay excluded by var/lib/kubelet so a stalled NAS can't hang statfs.
+      # Leaves only /var (xfs, the real disk).
+      extraArgs:
+        - --collector.filesystem.mount-points-exclude=^/(dev|proc|sys|run|system|tmp|etc|usr|opt|\.extra|var/lib/docker/.+|var/lib/kubelet/.+)($|/)
+        - --collector.filesystem.fs-types-exclude=^(autofs|binfmt_misc|bpf|cgroup2?|configfs|debugfs|devpts|devtmpfs|efivarfs|fusectl|hugetlbfs|iso9660|mqueue|nfs4?|nsfs|overlay|proc|procfs|pstore|rootfs|rpc_pipefs|securityfs|selinuxfs|squashfs|erofs|sysfs|tmpfs|tracefs)$
+      resources:
+        requests:
+          cpu: 10m
+          memory: 32Mi
+        limits:
+          memory: 128Mi
+
+    kube-state-metrics:
+      resources:
+        requests:
+          cpu: 10m
+          memory: 64Mi
+        limits:
+          memory: 256Mi
+      # Flux object readiness as gotk_resource_info{ready=...} (Flux's documented
+      # approach); alerted by FluxResourceNotReady on the Pi.
+      rbac:
+        extraRules:
+          - apiGroups:
+              - source.toolkit.fluxcd.io
+              - kustomize.toolkit.fluxcd.io
+              - helm.toolkit.fluxcd.io
+            resources:
+              - gitrepositories
+              - helmrepositories
+              - ocirepositories
+              - kustomizations
+              - helmreleases
+            verbs: [list, watch]
+      customResourceState:
+        enabled: true
+        config:
+          spec:
+            resources:
+              - groupVersionKind:
+                  group: kustomize.toolkit.fluxcd.io
+                  version: v1
+                  kind: Kustomization
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux Kustomization resource.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+              - groupVersionKind:
+                  group: helm.toolkit.fluxcd.io
+                  version: v2
+                  kind: HelmRelease
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux HelmRelease resource.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: GitRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux GitRepository resource.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: HelmRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux HelmRepository resource.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
+              - groupVersionKind:
+                  group: source.toolkit.fluxcd.io
+                  version: v1
+                  kind: OCIRepository
+                metricNamePrefix: gotk
+                metrics:
+                  - name: resource_info
+                    help: The current state of a Flux OCIRepository resource.
+                    each:
+                      type: Info
+                      info:
+                        labelsFromPath:
+                          name: [metadata, name]
+                    labelsFromPath:
+                      exported_namespace: [metadata, namespace]
+                      ready: [status, conditions, "[type=Ready]", status]
+                      suspended: [spec, suspend]
