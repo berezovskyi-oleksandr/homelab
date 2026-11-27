@@ -28,7 +28,7 @@ spec:
           type: RuntimeDefault
       containers:
         - name: reitti
-          image: dedicatedcode/reitti:5.12.2
+          image: dedicatedcode/reitti:5.13.0
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 8080
